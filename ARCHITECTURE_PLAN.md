@@ -1,11 +1,11 @@
 # Proposed architecture: ethical investment research and portfolio review
 
-This is a design draft for the remaining portfolio tracker and eventual website integration. The chatbot is now implemented separately in Dash; see `README.md`.
+This is the forward design for a constituent-level portfolio screen and eventual integration with the student's older website. The current Dash chatbot, Paper Lab, and issuer-evidence portfolio view are implemented; see `README.md`.
 
 ## User flows
 
 1. A visitor enters a ticker/name or asks a research question. A research agent resolves the security, calls evidence tools, and returns a structured explanation with a source/date for each fact, the selected screening method, and one of `passes`, `fails`, or `needs_review`.
-2. A visitor enters holdings and portfolio weights. A deterministic portfolio service runs the same evidence-backed screen for each holding, applies any optional personal exclusions, and displays covered weight, passing weight, failing weight, and unknown weight. It never converts missing evidence into a pass.
+2. A visitor enters tickers and current USD market values. The current deterministic portfolio view reports issuer-described strategy weight and unknown weight. A future constituent-level service should apply a selected screening method and optional personal exclusions, then display passing, failing, and unknown weight with source dates. It must never convert missing evidence into a pass.
 3. The visitor can inspect each holding's reason and bring the report to the human advisor for interpretation or next steps.
 
 ## Components
@@ -25,7 +25,7 @@ PydanticAI research agent (chatbot: gpt-6-luna via Portkey)
            +--> structured response with evidence, uncertainty, and usage
 ```
 
-The model explains and chooses tools; code applies documented screening rules and portfolio math. Keep a versioned screening methodology and trace every decisive input. A simple demo dataset can support repeatable tests, while live source adapters must clearly identify freshness and coverage.
+The model explains and chooses tools; code applies portfolio math. The current fund-level issuer evidence is not a full screening rule. A future version needs a versioned methodology and dated constituent data for every decisive input. A simple demo dataset can support repeatable tests, while live source adapters must clearly identify freshness and coverage.
 
 ## Delivery sequence
 
