@@ -84,3 +84,7 @@ The backend can be built in `Final Project/` with an API and demo UI before the 
 - Record real agent/tool traces, input/cached/output token usage, cost, and a redacted audit trail for the report.
 - Add a tested safety case: prompt injection in external text, an unsupported fund, or a request for a definitive buy recommendation should trigger a visible defense.
 - Compare honestly against named existing products and explain the distinctive value of the user's service plus transparent, personalized portfolio review.
+
+## October 25 interface refinement
+
+The user requested a better browser experience. Price-tool chat replies now render responsive line charts, four quick-question chips can submit prompts, and the Paper Lab chart occupies a full-width panel. The portfolio view adds alcohol and high-debt review flags, fund-mandate geography summaries and filters, and sorting. These flags do not calculate constituent-level revenue or financial ratios; the current evidence-coverage percentage is unchanged. Browser checks across 320–1,440px found no horizontal overflow. The refreshed screenshots and details are in `output/CHATBOT_EVIDENCE.md`.

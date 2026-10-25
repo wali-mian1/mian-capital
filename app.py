@@ -5,12 +5,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from dash import Dash, Input, Output, State, dcc, html, no_update, clientside_callback
+from dash import ALL, Dash, Input, Output, State, ctx, dcc, html, no_update, clientside_callback
 import plotly.graph_objects as go
 
 from agent import run_agent
+from charts import paper_figure, price_figure
 from paper_trader import PaperTradeError, simulate_future, simulate_historical
-from portfolio_alignment import PortfolioInputError, analyze_portfolio
+from portfolio_alignment import PortfolioInputError, analyze_portfolio, visible_holdings
 
 HERE = Path(__file__).resolve().parent
 PORTFOLIO_PATH = HERE / "portfolio.json"
@@ -21,6 +22,13 @@ WELCOME = (
     "Assalamu alaikum. Ask for a fund's dated price, recent news, or public screening information. "
     "I cover **HLAL, SPUS, AMANX, AMAGX, SPRE, SPSK, UMMA, and SPWO**. "
     "Open each tool step to see its input and output."
+)
+
+QUICK_QUESTIONS = (
+    ("AMANX price + chart", "What was AMANX's latest close, and how did its price change over the last month? Show a chart."),
+    ("AMAGX price + chart", "What was AMAGX's latest close, and how did its price change over the last month? Show a chart."),
+    ("HLAL last month", "How did HLAL's closing price change over the last month? Show a chart."),
+    ("SPUS news", "What recent news is there about SPUS? Include dated sources."),
 )
 
 
@@ -75,6 +83,7 @@ app.layout = html.Div(
                 html.Section([
                     html.Div([html.Div("MIAN CAPITAL ASSISTANT", className="card-kicker"), html.Div("Fund research", className="card-title")], className="chat-head"),
                     html.Div(id="chat-window", className="chat-window", role="log", **{"aria-live": "polite"}),
+                    html.Div([html.Span("QUICK QUESTIONS", className="quick-label"), html.Div([html.Button(label, id={"type": "quick-question", "index": index}, n_clicks=0, className="quick-chip") for index, (label, _) in enumerate(QUICK_QUESTIONS)], className="quick-chips")], className="quick-row"),
                     html.Div([
                         dcc.Input(id="composer", type="text", debounce=False, placeholder="Ask for Amana Growth Fund's price or news about HLAL...", className="composer", autoComplete="off"),
                         html.Button("Send", id="send-button", n_clicks=0, className="send-button"),
@@ -150,8 +159,9 @@ app.layout = html.Div(
                         html.Button("Run paper scenario", id="paper-run", n_clicks=0, className="paper-run"),
                         html.P("Historical returns can be negative. A checking-account comparison assumes 0% interest and does not include inflation.", className="paper-form-note"),
                     ], className="paper-form reveal delay-1"),
-                    html.Div([html.Div("YOUR RESULTS", className="form-kicker"), html.Div("Your scenario will appear here after you run it.", id="paper-result", className="paper-result-empty"), dcc.Graph(id="paper-chart", figure=go.Figure(), style={"display": "none"}, config={"displayModeBar": False, "responsive": True})], className="paper-output reveal delay-2"),
+                    html.Div([html.Div("YOUR RESULTS", className="form-kicker"), html.Div("Your scenario will appear here after you run it.", id="paper-result", className="paper-result-empty")], className="paper-output reveal delay-2"),
                 ], className="paper-workspace"),
+                html.Div([html.Div("SCENARIO CHART", className="form-kicker"), html.P("The investment line uses the selected scenario. The cash line assumes 0% interest.", className="chart-lede"), dcc.Graph(id="paper-chart", figure=go.Figure(), config={"displayModeBar": False, "responsive": True, "scrollZoom": False}, className="paper-chart")], id="paper-chart-panel", className="paper-chart-panel", style={"display": "none"}),
             ], className="paper-work-section"),
             html.Section([html.Div("SAVED IN THIS BROWSER SESSION", className="eyebrow"), html.H2("Your paper scenarios"), html.Div(id="paper-history", className="paper-history")], className="paper-history-section reveal"),
             html.P("Paper Lab is for education. It does not connect to a brokerage, execute trades, or guarantee results. Past performance does not predict future returns.", className="paper-disclaimer"),
@@ -168,9 +178,10 @@ app.layout = html.Div(
                         dcc.Textarea(id="portfolio-input", value="HLAL,5000\nSPUS,3000\nAMAGX,2000", className="portfolio-textarea"),
                         html.Small("Example: HLAL,5000. Use today's position values, not share counts."),
                         html.Div("Extra personal exclusions to flag for review", className="portfolio-exclusion-label"),
-                        dcc.Checklist(id="portfolio-exclusions", options=[{"label": "Tobacco", "value": "tobacco"}, {"label": "Weapons", "value": "weapons"}, {"label": "Fossil fuels", "value": "fossil_fuels"}], value=[], className="portfolio-checklist"),
+                        dcc.Checklist(id="portfolio-exclusions", options=[{"label": "Alcohol businesses", "value": "alcohol"}, {"label": "High debt / leverage", "value": "high_debt"}, {"label": "Tobacco", "value": "tobacco"}, {"label": "Weapons", "value": "weapons"}, {"label": "Fossil fuels", "value": "fossil_fuels"}], value=[], className="portfolio-checklist"),
+                        html.Div([html.Div([html.Label("Show fund focus"), dcc.Dropdown(id="portfolio-region", options=[{"label": "All holdings", "value": "all"}, {"label": "US-focused", "value": "us"}, {"label": "International-focused", "value": "international"}, {"label": "Global mandate", "value": "global"}, {"label": "Region not verified", "value": "unknown"}], value="all", clearable=False, className="portfolio-select")], className="field"), html.Div([html.Label("Sort holdings"), dcc.Dropdown(id="portfolio-sort", options=[{"label": "Largest position first", "value": "weight"}, {"label": "Ticker A–Z", "value": "ticker"}, {"label": "Needs review first", "value": "review"}], value="weight", clearable=False, className="portfolio-select")], className="field")], className="portfolio-filter-fields"),
                         html.Button("Review my portfolio", id="portfolio-run", n_clicks=0, className="paper-run"),
-                        html.P("Entries are processed by this app when you run a review; the form resets on reload. This version does not check every underlying company in a fund.", className="paper-form-note"),
+                        html.P("Filters use a fund's stated focus, not a verified breakdown of its holdings. Alcohol and high-debt checks need current constituent data. The form resets on reload.", className="paper-form-note"),
                     ], className="paper-form reveal delay-1"),
                     html.Div([html.Div("YOUR EVIDENCE VIEW", className="form-kicker"), html.Div("Run a review to see coverage and holding-level sources.", id="portfolio-result", className="paper-result-empty")], className="paper-output reveal delay-2"),
                 ], className="paper-workspace"),
@@ -186,9 +197,32 @@ def render_messages(history, pending):
     blocks = []
     for message in history or []:
         assistant = message.get("role") == "assistant"
+        charts = []
+        if assistant:
+            chart_outputs = {}
+            for event in message.get("tool_events", []):
+                if event.get("name") != "get_stock_price" or event.get("status") != "completed" or not isinstance(event.get("output"), dict):
+                    continue
+                output = event["output"]
+                ticker = output.get("ticker")
+                if not ticker or not output.get("prices"):
+                    continue
+                previous = chart_outputs.get(ticker)
+                if previous is None or output.get("observations", len(output["prices"])) > previous.get("observations", len(previous["prices"])):
+                    chart_outputs[ticker] = output
+            for output in chart_outputs.values():
+                figure = price_figure(output)
+                if figure is None:
+                    continue
+                charts.append(html.Div([
+                    html.Div(f"{output.get('ticker', 'Fund')} · dated closing prices", className="chat-chart-title"),
+                    dcc.Graph(figure=figure, config={"displayModeBar": False, "responsive": True, "scrollZoom": False}, className="chat-price-chart", style={"height": "260px", "width": "100%"}),
+                    html.P("Sampled dates only; open the source for the full daily history." if output.get("prices_sampled") else "Daily closes from Yahoo Finance. The latest available close may be delayed.", className="chat-chart-note"),
+                ], className="chat-chart-card"))
         blocks.append(html.Div([
             html.Div("Mian Capital" if assistant else "You", className="message-label"),
             dcc.Markdown(str(message.get("content", "")), className="message-body", link_target="_blank"),
+            html.Div(charts, className="chat-charts") if charts else None,
             html.Div([html.Details([
                 html.Summary(f"{event.get('name', 'tool')} · {event.get('status', 'completed')}"),
                 html.Div("Input", className="tool-label"),
@@ -197,7 +231,7 @@ def render_messages(history, pending):
                 html.Pre(json.dumps(event.get("output"), indent=2, ensure_ascii=False, default=str), className="tool-json"),
             ], className="tool-detail") for event in message.get("tool_events", [])], className="tool-events") if message.get("tool_events") else None,
             html.Div(f"Tokens: {message['usage'].get('input_tokens', 0)} in · {message['usage'].get('cached_input_tokens', 0)} cached · {message['usage'].get('output_tokens', 0)} out", className="usage") if message.get("usage") else None,
-        ], className="message assistant" if assistant else "message user"))
+        ], className="message assistant chart-message" if charts else ("message assistant" if assistant else "message user")))
     if pending:
         blocks.append(html.Div([html.Div("Mian Capital", className="message-label"), html.Span("Thinking", className="thinking")], className="message assistant", role="status"))
     return blocks
@@ -221,21 +255,28 @@ clientside_callback(
 )
 
 
-@app.callback(Output("send-button", "disabled"), Output("composer", "disabled"), Input("pending-request", "data"))
+@app.callback(Output("send-button", "disabled"), Output("composer", "disabled"), Output({"type": "quick-question", "index": ALL}, "disabled"), Input("pending-request", "data"))
 def lock_composer(pending):
-    return bool(pending), bool(pending)
+    locked = bool(pending)
+    return locked, locked, [locked] * len(QUICK_QUESTIONS)
 
 
 @app.callback(
     Output("chat-history", "data", allow_duplicate=True), Output("pending-request", "data"),
     Output("composer", "value"), Output("agent-poll", "disabled"),
     Output("agent-poll", "n_intervals"), Output("agent-poll", "max_intervals"),
-    Input("send-button", "n_clicks"), Input("composer", "n_submit"),
+    Input("send-button", "n_clicks"), Input("composer", "n_submit"), Input({"type": "quick-question", "index": ALL}, "n_clicks"),
     State("composer", "value"), State("chat-history", "data"), State("pending-request", "data"),
     prevent_initial_call=True,
 )
-def submit_message(_, __, text, history, pending):
-    if pending or not text or not text.strip():
+def submit_message(_, __, ___, text, history, pending):
+    if pending:
+        return (no_update,) * 6
+    triggered = ctx.triggered_id
+    if isinstance(triggered, dict) and triggered.get("type") == "quick-question":
+        index = triggered.get("index")
+        text = QUICK_QUESTIONS[index][1] if isinstance(index, int) and 0 <= index < len(QUICK_QUESTIONS) else ""
+    if not text or not text.strip():
         return (no_update,) * 6
     question = text.strip()[:1500]
     return [*(history or []), {"role": "user", "content": question}], {"text": question}, "", False, 0, 1
@@ -287,20 +328,10 @@ def _money(amount: float) -> str:
     return f"{'−' if amount < 0 else ''}${abs(amount):,.2f}"
 
 
-def _paper_figure(result: dict) -> go.Figure:
-    series = result["series"]
-    x = [row.get("date", row.get("year")) for row in series]
-    figure = go.Figure()
-    figure.add_trace(go.Scatter(x=x, y=[row["investment_value"] for row in series], mode="lines", name="Paper investment", line={"color": "#245a43", "width": 3}, fill="tozeroy", fillcolor="rgba(50,113,76,.10)"))
-    figure.add_trace(go.Scatter(x=x, y=[row["cash_at_zero_interest"] for row in series], mode="lines", name="Cash at 0%", line={"color": "#b58b51", "width": 2, "dash": "dash"}))
-    figure.update_layout(height=330, margin={"l": 55, "r": 12, "t": 20, "b": 48}, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font={"family": "DM Sans, Arial", "color": "#4b5d51", "size": 11}, legend={"orientation": "h", "y": 1.12, "x": 0}, hovermode="x unified", xaxis={"title": "Date" if result["mode"] == "historical" else "Years from today", "showgrid": False}, yaxis={"title": "Illustrative value (USD)", "gridcolor": "#e5ebe3", "tickprefix": "$"})
-    return figure
-
-
 @app.callback(
     Output("paper-result", "children"),
     Output("paper-chart", "figure"),
-    Output("paper-chart", "style"),
+    Output("paper-chart-panel", "style"),
     Output("paper-positions", "data"),
     Input("paper-run", "n_clicks"),
     State("paper-mode", "value"),
@@ -336,7 +367,7 @@ def run_paper_scenario(_, mode, ticker, amount, purchase_date, years, rate, posi
     ], className="paper-result-content")
     record = {"ticker": result["ticker"], "mode": result["mode"], "initial_amount": result["initial_amount"], "ending_value": result["ending_value"], "total_return_pct": result["total_return_pct"], "context": context}
     updated = [*(positions or [])[-11:], record]
-    return summary, _paper_figure(result), {}, updated
+    return summary, paper_figure(result), {}, updated
 
 
 @app.callback(Output("paper-history", "children"), Input("paper-positions", "data"))
@@ -346,31 +377,37 @@ def render_paper_history(positions):
     return [html.Div([html.Div([html.Strong(item["ticker"]), html.Span("LOOK BACK" if item["mode"] == "historical" else "LOOK AHEAD", className="history-mode")]), html.Div(item["context"], className="history-context"), html.Div([html.Span(_money(item["initial_amount"])), html.Span("→"), html.Strong(_money(item["ending_value"]))], className="history-values")], className="history-card") for item in reversed(positions)]
 
 
-@app.callback(Output("portfolio-result", "children"), Input("portfolio-run", "n_clicks"), State("portfolio-input", "value"), State("portfolio-exclusions", "value"), prevent_initial_call=True)
-def run_portfolio_review(_, holdings_text, exclusions):
+@app.callback(Output("portfolio-result", "children"), Input("portfolio-run", "n_clicks"), Input("portfolio-region", "value"), Input("portfolio-sort", "value"), State("portfolio-input", "value"), State("portfolio-exclusions", "value"), prevent_initial_call=True)
+def run_portfolio_review(n_clicks, region, sort_by, holdings_text, exclusions):
+    if not n_clicks:
+        return no_update
     try:
         result = analyze_portfolio(holdings_text, exclusions)
+        displayed = visible_holdings(result, region, sort_by)
     except PortfolioInputError as exc:
         return html.Div(str(exc), className="paper-error")
     rows = []
-    for item in result["holdings"]:
+    for item in displayed:
         rows.append(html.Div([
             html.Div([html.Strong(item["ticker"]), html.Span(f"{item['weight_pct']:.2f}% of portfolio", className="portfolio-weight")], className="portfolio-row-head"),
-            html.Div(item["name"], className="portfolio-name"),
+            html.Div(f"{item['name']} · {item['region_label']}", className="portfolio-name"),
             html.Div(item["status"], className="portfolio-status"),
             html.P(item["explanation"]),
             html.A("Issuer source ↗", href=item["source_url"], target="_blank", rel="noopener noreferrer") if item["source_url"] else html.Span("No reviewed source", className="portfolio-no-source"),
             html.Div(f"Source checked: {item['source_checked_on']}" if item["source_checked_on"] else "Source check pending", className="portfolio-source-date"),
         ], className="portfolio-row"))
-    selected = ", ".join(x.replace("_", " ") for x in result["personal_exclusions"])
     return html.Div([
         html.H3("Portfolio evidence coverage"),
         html.Div([html.Div([html.Strong(f"{result['issuer_screened_share_pct']:.2f}%"), html.Span("Issuer-described screened strategies")]), html.Div([html.Strong(f"{result['needs_review_share_pct']:.2f}%"), html.Span("Needs source review")])], className="portfolio-score-grid"),
         html.P(f"Entered portfolio value: {_money(result['total_value'])}", className="portfolio-total"),
+        html.H4("Fund focus by entered value"),
+        html.Div([html.Div([html.Strong(f"{item['weight_pct']:.1f}%"), html.Span(item["label"])], className="geography-item") for item in result["region_breakdown"]], className="geography-grid"),
+        html.P("These categories describe a fund's stated geographic mandate, not a verified look-through to every company it owns.", className="geography-note"),
         html.H4("Holding-level evidence"),
-        html.Div(rows, className="portfolio-rows"),
+        html.P(f"Showing {len(displayed)} of {len(result['holdings'])} holdings. Weights above use the whole portfolio.", className="portfolio-filter-note"),
+        html.Div(rows if rows else [html.P("No holdings match this fund-focus filter.", className="history-empty")], className="portfolio-rows"),
         html.H4("Your extra exclusions"),
-        html.P(f"{selected.title()}: {result['personal_exclusions_status']}. Current fund holdings have not been checked for these exclusions." if selected else "None selected. You can select extra exclusions and run the review again."),
+        html.Div([html.Div([html.Strong(f"{check['label']} · {check['status']}"), html.P(check["detail"])], className="exclusion-review") for check in result["exclusion_checks"]], className="exclusion-reviews") if result["exclusion_checks"] else html.P("None selected. Choose exclusions above and run the review again."),
         html.Details([html.Summary("How this percentage is calculated"), html.P(result["method"])], className="portfolio-method"),
     ], className="portfolio-results")
 

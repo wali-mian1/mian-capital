@@ -9,6 +9,29 @@ import re
 
 from funds import FUNDS
 
+REGION_LABELS = {
+    "us": "US-focused",
+    "international": "International-focused",
+    "global": "Global mandate",
+    "unknown": "Region not verified",
+}
+
+EXCLUSION_LABELS = {
+    "alcohol": "Alcohol businesses",
+    "high_debt": "High debt / leverage",
+    "tobacco": "Tobacco",
+    "weapons": "Weapons",
+    "fossil_fuels": "Fossil fuels",
+}
+
+EXCLUSION_NOTES = {
+    "alcohol": "Issuer Shariah strategies may exclude alcohol, but current holdings and revenue exposure were not independently checked.",
+    "high_debt": "No company debt ratios were calculated. Screening standards use different denominators and thresholds, so this needs a chosen method and current financial data.",
+    "tobacco": "Current constituent exposure to tobacco was not checked.",
+    "weapons": "Current constituent exposure to weapons was not checked.",
+    "fossil_fuels": "Current constituent exposure to fossil fuels was not checked.",
+}
+
 
 class PortfolioInputError(ValueError):
     pass
@@ -41,8 +64,11 @@ def analyze_portfolio(text: str, exclusions: list[str] | None = None) -> dict:
     holdings = []
     supported_value = 0.0
     unknown_value = 0.0
+    region_values = {region: 0.0 for region in REGION_LABELS}
     for symbol, value in merged.items():
         fund = FUNDS.get(symbol)
+        region = fund.get("region", "unknown") if fund else "unknown"
+        region_values[region] += value
         if fund and fund.get("source_checked_on"):
             status = "Issuer-described screened strategy"
             supported_value += value
@@ -63,15 +89,38 @@ def analyze_portfolio(text: str, exclusions: list[str] | None = None) -> dict:
             "explanation": explanation,
             "source_url": fund["source_url"] if fund else None,
             "source_checked_on": fund.get("source_checked_on") if fund else None,
+            "region": region,
+            "region_label": REGION_LABELS[region],
         })
-    allowed_exclusions = {"tobacco", "weapons", "fossil_fuels"}
-    selected = [item for item in (exclusions or []) if item in allowed_exclusions]
+    selected = [item for item in (exclusions or []) if item in EXCLUSION_LABELS]
     return {
         "total_value": round(total, 2),
         "issuer_screened_share_pct": round(100 * supported_value / total, 2),
         "needs_review_share_pct": round(100 * unknown_value / total, 2),
         "holdings": holdings,
+        "region_breakdown": [
+            {"region": region, "label": REGION_LABELS[region], "value": round(value, 2), "weight_pct": round(100 * value / total, 2)}
+            for region, value in region_values.items() if value > 0
+        ],
         "personal_exclusions": selected,
+        "exclusion_checks": [
+            {"key": item, "label": EXCLUSION_LABELS[item], "status": "Needs review", "detail": EXCLUSION_NOTES[item]}
+            for item in selected
+        ],
         "personal_exclusions_status": "Needs holdings-level review" if selected else "No extra exclusions selected",
-        "method": "This percentage is the share of entered market value invested in funds whose issuer describes a Shariah-oriented screening strategy and whose issuer page was checked for this project. It does not measure the compliance of every current constituent, apply one universal Shariah standard, or certify the portfolio. Unreviewed positions remain unknown. Extra personal exclusions require current constituent-level data and are not included in the percentage.",
+        "method": "This percentage is the share of entered market value invested in funds whose issuer describes a Shariah-oriented screening strategy and whose issuer page was checked for this project. Geography reflects the fund's stated mandate, not a verified look-through to every underlying holding. It does not measure the compliance of every current constituent, calculate debt ratios, apply one universal Shariah standard, or certify the portfolio. Unreviewed positions remain unknown. Extra exclusions require current company or fund holdings data and are not included in the percentage.",
     }
+
+
+def visible_holdings(result: dict, region: str = "all", sort_by: str = "weight") -> list[dict]:
+    """Filter displayed rows without changing whole-portfolio percentages."""
+    if region not in {*REGION_LABELS, "all"}:
+        raise PortfolioInputError("Choose a supported geography filter.")
+    if sort_by not in {"weight", "ticker", "review"}:
+        raise PortfolioInputError("Choose a supported sort order.")
+    rows = [item for item in result["holdings"] if region == "all" or item["region"] == region]
+    if sort_by == "ticker":
+        return sorted(rows, key=lambda item: item["ticker"])
+    if sort_by == "review":
+        return sorted(rows, key=lambda item: (item["status"] != "Needs source review", -item["market_value"]))
+    return sorted(rows, key=lambda item: (-item["market_value"], item["ticker"]))

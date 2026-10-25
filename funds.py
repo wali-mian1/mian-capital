@@ -12,6 +12,7 @@ FUNDS = {
         "issuer_description": "The issuer describes HLAL as a Shariah-screened US equity ETF tracking the FTSE USA Shariah Index.",
         "source_url": "https://www.wahed.com/hlal",
         "screening_basis": "FTSE USA Shariah Index methodology; current constituent-level review is not performed by this app.",
+        "region": "us",
         "source_checked_on": "2026-10-25",
     },
     "SPUS": {
@@ -21,6 +22,7 @@ FUNDS = {
         "issuer_description": "The issuer describes SPUS as a Shariah-compliant ETF with AAOIFI-based screening.",
         "source_url": "https://www.sp-funds.com/spus/",
         "screening_basis": "Issuer's AAOIFI-based screen; current constituent-level review is not performed by this app.",
+        "region": "us",
         "source_checked_on": "2026-10-25",
     },
     "AMANX": {
@@ -30,6 +32,7 @@ FUNDS = {
         "issuer_description": "Amana Income Fund is part of Saturna's Amana Funds, which follow Islamic investment principles.",
         "source_url": "https://www.saturna.com/amana/income-fund",
         "screening_basis": "Issuer-described Islamic investment principles; current holdings and ratios are not independently checked here.",
+        "region": "unknown",
         "source_checked_on": None,
     },
     "AMAGX": {
@@ -39,6 +42,7 @@ FUNDS = {
         "issuer_description": "Amana Growth Fund is part of Saturna's Amana Funds, which follow Islamic investment principles.",
         "source_url": "https://www.saturna.com/amana/growth-fund",
         "screening_basis": "Issuer-described Islamic investment principles; current holdings and ratios are not independently checked here.",
+        "region": "unknown",
         "source_checked_on": None,
     },
     "SPRE": {
@@ -48,6 +52,7 @@ FUNDS = {
         "issuer_description": "The issuer describes SPRE as a Shariah-oriented global REIT ETF.",
         "source_url": "https://www.sp-funds.com/spre/",
         "screening_basis": "Issuer's Shariah screen; current constituent-level review is not performed by this app.",
+        "region": "global",
         "source_checked_on": "2026-10-25",
     },
     "SPSK": {
@@ -57,6 +62,7 @@ FUNDS = {
         "issuer_description": "The issuer describes SPSK as an ETF investing in sukuk.",
         "source_url": "https://www.sp-funds.com/spsk/",
         "screening_basis": "Issuer's sukuk index methodology; current holdings are not independently checked here.",
+        "region": "global",
         "source_checked_on": "2026-10-25",
     },
     "UMMA": {
@@ -66,6 +72,7 @@ FUNDS = {
         "issuer_description": "The issuer describes UMMA as an ETF following the Dow Jones Islamic Market International Titans 100 Index.",
         "source_url": "https://www.wahed.com/umma",
         "screening_basis": "Issuer's Islamic index methodology; current constituent-level review is not performed by this app.",
+        "region": "international",
         "source_checked_on": "2026-10-25",
     },
     "SPWO": {
@@ -75,6 +82,7 @@ FUNDS = {
         "issuer_description": "The issuer describes SPWO as a Shariah-oriented international equity ETF.",
         "source_url": "https://www.sp-funds.com/spwo/",
         "screening_basis": "Issuer's Shariah screen; current constituent-level review is not performed by this app.",
+        "region": "international",
         "source_checked_on": "2026-10-25",
     },
 }
