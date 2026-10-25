@@ -28,5 +28,5 @@ Deadline: **Monday, October 26, 2026, 6:00 PM Eastern**, on Canvas.
 - [x] `.env` and `output/audit.jsonl` are ignored; a staged-file scan found no apparent key value.
 - [x] Clean-copy dependency installation, four page routes, and parent-folder `.env` discovery tested.
 - [x] Report printed to 11 letter pages; slides opened and advanced with an arrow key.
-- [ ] Confirm GitHub link works from an unauthenticated browser and the README starts the app within 10 minutes from the published repo.
+- [x] Public GitHub clone installed dependencies and loaded all four routes in about 26 seconds, using a dummy parent-folder `.env`.
 - [ ] Upload the repository URL, `report.html`, and `slides.html` to Canvas before the deadline.
