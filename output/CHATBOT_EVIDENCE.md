@@ -26,3 +26,9 @@ Observed October 25, 2026 in a local headless Chromium browser at `127.0.0.1:805
 Observed October 25, 2026 in a local browser. The sample `HLAL,5000`, `SPUS,3000`, `AMAGX,2000` showed 80.00% in issuer-described screened strategies whose project source was checked, and 20.00% requiring source review. Three holding cards displayed weights, explanation, and issuer links. Selecting tobacco as an extra exclusion produced a **needs holdings-level review** label rather than silently passing it. Desktop and 390px mobile layouts had no horizontal overflow. Screenshots: `mian-capital-portfolio.png` and `mian-capital-portfolio-mobile.png`.
 
 The percentage describes evidence coverage of fund-level screening claims, not a verified compliance score. Underlying current holdings, financial ratios, and personal exclusions have not been independently screened.
+
+## Cost and quality check
+
+On October 25, 2026, an HLAL price request for October 27, 2025 through October 26, 2026 returned 250 observations but passed only the first and last 12 daily closes to the model. The displayed `prices` list was 1,057 JSON bytes versus 11,033 bytes for all 250 rows, a roughly 90% smaller tool payload. The tradeoff is concrete: the April 28, 2026 close was absent from the broad output. A narrower April 28–29 tool call returned the omitted $65.76 close. This shows both the reduced context and the extra call needed to answer a middle-date question.
+
+The temporary clean-copy setup created a new `.venv`, installed `requirements.txt`, returned HTTP 200 for `/`, `/about`, `/paper-lab`, and `/portfolio`, and found a dummy key in a parent-folder `.env`. The real Portkey key was not copied into the test folder.
