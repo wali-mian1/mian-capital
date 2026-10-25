@@ -2,6 +2,10 @@
 
 Public repository: https://github.com/wali-mian1/mian-capital
 
+## Canvas submission (instructor update, October 25)
+
+Upload exactly **two files** from the local `Canvas Upload/` folder: `report.html` and `slides.html`. The public GitHub repository URL appears in both files, so the teaching staff can clone the application. A video of you testing the app is optional; no video is included. Do not upload the repository ZIP, screenshots, README, Python source, or any other file to Canvas. Run `.venv/bin/python build_submission.py` after editing either template to refresh the two self-contained HTML files and the upload copies.
+
 Mian Capital is an early research interface for eight Shariah-oriented funds: HLAL, SPUS, AMANX, AMAGX, SPRE, SPSK, UMMA, and SPWO. A PydanticAI agent uses exactly two tools: `get_stock_price(ticker, start, stop)` through yfinance and OpenAI's native `web_search` through the Responses API. The Dash chat shows each tool's actual input and output in an expandable panel.
 
 The chatbot provides sourced research, not independent Shariah certification or personalized investment advice. The landing page explains why values matter, what the research assistant offers, and how to use it. Its custom SVG graphics and scroll reveals include reduced-motion support. The About page introduces founder Wali Mian and account setup guidance. The Paper Lab lets visitors test paper-money scenarios with historical prices or an annual return assumption. The Portfolio page reports the share of entered market value in funds with an issuer-described screening strategy whose source was checked for this project. It keeps unreviewed securities and extra personal exclusions separate. The self-contained report and slides are included in this repository.

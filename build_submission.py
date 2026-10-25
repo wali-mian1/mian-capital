@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import base64
 import re
+import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 SCREENSHOTS = ROOT / "output"
+CANVAS_UPLOAD = ROOT / "Canvas Upload"
+GITHUB_URL = "https://github.com/wali-mian1/mian-capital"
 ASSET_MAP = {
     "REVEAL_CSS": ROOT / "vendor" / "reveal.css",
     "REVEAL_JS": ROOT / "vendor" / "reveal.js",
@@ -33,7 +36,12 @@ def build(name: str) -> None:
     output = re.sub(r"@@([\w.\-]+)@@", replace, template)
     if "@@" in output:
         raise ValueError("Unfilled template marker")
-    (ROOT / f"{name}.html").write_text(output, encoding="utf-8")
+    if GITHUB_URL not in output:
+        raise ValueError(f"{name}.html is missing the GitHub repository URL")
+    path = ROOT / f"{name}.html"
+    path.write_text(output, encoding="utf-8")
+    CANVAS_UPLOAD.mkdir(exist_ok=True)
+    shutil.copy2(path, CANVAS_UPLOAD / path.name)
 
 
 if __name__ == "__main__":

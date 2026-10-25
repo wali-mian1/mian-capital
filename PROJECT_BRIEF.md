@@ -5,7 +5,7 @@ Source: https://zlisto.github.io/mgt_409_fa26/project_requirements.html (read Oc
 ## Deadline and submission
 
 - **Due:** Monday, October 26, 2026, 6:00 PM Eastern, on Canvas.
-- **Solo project.** Submit a GitHub repository URL, `report.html`, and `slides.html`. A 2–3 minute demo video is optional and can provide backup evidence if the app does not run for teaching staff.
+- **Solo project.** The instructor's October 25 Canvas announcement supersedes the original URL-plus-files instruction. Upload **only** `report.html` and `slides.html` as files, with the public GitHub repository URL visible inside **both** HTML files. A video of the student testing the app is optional. Upload no other files to Canvas; the instructor says extras will be penalized.
 - The report and slides must each be one HTML file with screenshots embedded so they can be opened directly. The slides must use reveal.js and contain no more than 10 slides.
 
 ## App and repository requirements
