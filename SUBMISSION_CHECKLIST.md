@@ -4,7 +4,7 @@ Deadline: **Monday, October 26, 2026, 6:00 PM Eastern**, on Canvas.
 
 ## Required Canvas items
 
-- [ ] GitHub repository URL. The local repo is committed on `main`; publish it publicly or add `zlisto` to a private repo. Replace the pending GitHub line in `report.template.html`, rebuild `report.html`, and update slide 1 if appropriate.
+- [x] Public GitHub repository: https://github.com/wali-mian1/mian-capital. Local `main` is committed; verify the published repo after pushing the latest changes.
 - [x] `report.html`: one self-contained HTML file, 11 printed letter pages, embedded screenshots. Check the final GitHub link and every number before upload.
 - [x] `slides.html`: one self-contained HTML file, nine reveal.js slides, embedded screenshots. Arrow-key navigation checked locally.
 - [ ] Optional 2–3 minute demo video. Recommended as backup if a live data source or setup fails during grading. It does not replace the 10-minute local setup requirement.
