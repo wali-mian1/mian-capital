@@ -1,0 +1,12 @@
+{
+  "as_of": "2026-10-25",
+  "currency": "USD",
+  "cash": 0,
+  "holdings": [
+    { "ticker": "HLAL", "shares": 20 },
+    { "ticker": "SPUS", "shares": 20 },
+    { "ticker": "AMANX", "shares": 10 },
+    { "ticker": "AMAGX", "shares": 10 }
+  ],
+  "notes": "Illustrative holdings only. Replace with your own amounts; this is not a real client portfolio."
+}

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Playful advisor figurine with glasses and calculator</title>
+  <ellipse cx="111" cy="204" rx="71" ry="11" fill="#153629" opacity=".28"/>
+  <path d="M54 181C54 151 77 134 108 134C139 134 163 151 163 181V199H54V181Z" fill="#D4B67B" stroke="#F1DCAB" stroke-width="4"/>
+  <path d="M88 140L109 168L131 140" fill="#F7F3E7"/>
+  <path d="M99 153L109 167L120 153" fill="#28523F"/>
+  <rect x="64" y="55" width="88" height="92" rx="43" fill="#E3AF85" stroke="#F8D0A5" stroke-width="3"/>
+  <path d="M68 93C62 68 75 47 92 45C102 31 134 39 149 56C156 64 154 83 151 91C142 78 139 62 126 61C112 75 90 72 75 70C73 80 72 85 68 93Z" fill="#26362E"/>
+  <path d="M72 111C62 105 57 94 61 88C65 82 72 87 75 94M147 111C157 105 162 94 158 88C154 82 147 87 144 94" fill="#D89570"/>
+  <rect x="76" y="92" width="29" height="21" rx="9" stroke="#26372E" stroke-width="4"/>
+  <rect x="113" y="92" width="29" height="21" rx="9" stroke="#26372E" stroke-width="4"/>
+  <path d="M105 101H113M77 99L69 96M141 99L149 96" stroke="#26372E" stroke-width="4" stroke-linecap="round"/>
+  <path d="M102 122C107 127 114 127 119 122" stroke="#9A5547" stroke-width="3" stroke-linecap="round"/>
+  <path d="M54 164L28 147C21 143 15 153 22 159L52 183M165 162L187 141C192 136 203 142 198 151L171 182" stroke="#E3AF85" stroke-width="17" stroke-linecap="round"/>
+  <rect x="20" y="134" width="51" height="60" rx="7" transform="rotate(-11 20 134)" fill="#EBE8D7" stroke="#344E3C" stroke-width="4"/>
+  <rect x="31" y="142" width="27" height="11" rx="2" transform="rotate(-11 31 142)" fill="#A7D0A8"/>
+  <path d="M33 162L38 161M48 159L53 158M35 173L40 172M50 170L55 169" stroke="#49624D" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="183" cy="46" r="28" fill="#E8C26D" stroke="#F9E6AC" stroke-width="5"/>
+  <circle cx="183" cy="46" r="20" stroke="#AA7938" stroke-width="2"/>
+  <text x="183" y="56" text-anchor="middle" font-family="Georgia,serif" font-size="31" font-weight="bold" fill="#31533D">$</text>
+  <path d="M169 101L173 88L180 99L194 96L187 107L195 118L181 114L175 127L170 113L156 112L166 103Z" fill="#F3D187"/>
+</svg>

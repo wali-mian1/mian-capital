@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520" fill="none" role="img" aria-labelledby="title">
+  <title id="title">A gold coin, growing chart, and leaf inside a green arch</title>
+  <defs>
+    <linearGradient id="arch" x1="93" y1="55" x2="427" y2="472" gradientUnits="userSpaceOnUse"><stop stop-color="#E4EEDF"/><stop offset="1" stop-color="#D6E3D3"/></linearGradient>
+    <linearGradient id="coin" x1="205" y1="148" x2="321" y2="302" gradientUnits="userSpaceOnUse"><stop stop-color="#F9E9B7"/><stop offset=".55" stop-color="#D3AD60"/><stop offset="1" stop-color="#A77C38"/></linearGradient>
+    <linearGradient id="bar" x1="107" y1="251" x2="391" y2="456" gradientUnits="userSpaceOnUse"><stop stop-color="#4C866B"/><stop offset="1" stop-color="#194636"/></linearGradient>
+    <filter id="shadow" x="65" y="35" width="410" height="490" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="16" stdDeviation="15" flood-color="#1D4634" flood-opacity=".14"/></filter>
+    <filter id="coinshadow" x="177" y="132" width="166" height="188" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="9" stdDeviation="9" flood-color="#6E5426" flood-opacity=".20"/></filter>
+  </defs>
+  <circle cx="261" cy="258" r="232" stroke="#C1CDAF" stroke-width="1" stroke-dasharray="4 9"/>
+  <circle cx="261" cy="258" r="201" stroke="#CED9C1" stroke-width="1"/>
+  <g filter="url(#shadow)">
+    <path d="M90 455V211C90 117.1 166.1 41 260 41C353.9 41 430 117.1 430 211V455C430 468.3 419.3 479 406 479H114C100.7 479 90 468.3 90 455Z" fill="url(#arch)" stroke="#C5D5C2" stroke-width="2"/>
+    <path d="M108 454V209C108 125.1 176.1 57 260 57C343.9 57 412 125.1 412 209V454" stroke="white" stroke-opacity=".73" stroke-width="2"/>
+  </g>
+  <path d="M100 425H420" stroke="#B9CDB8" stroke-width="2"/>
+  <path d="M128 425V361C128 353.3 134.3 347 142 347H175C182.7 347 189 353.3 189 361V425H128Z" fill="url(#bar)" opacity=".68"/>
+  <path d="M201 425V324C201 316.3 207.3 310 215 310H248C255.7 310 262 316.3 262 324V425H201Z" fill="url(#bar)" opacity=".78"/>
+  <path d="M274 425V284C274 276.3 280.3 270 288 270H321C328.7 270 335 276.3 335 284V425H274Z" fill="url(#bar)" opacity=".88"/>
+  <path d="M347 425V241C347 233.3 353.3 227 361 227H381C388.7 227 395 233.3 395 241V425H347Z" fill="url(#bar)"/>
+  <path d="M127 322L192 296L253 306L310 243L381 205" stroke="#C18E44" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="127" cy="322" r="6" fill="#F5E2B3" stroke="#AF7E37" stroke-width="3"/>
+  <circle cx="192" cy="296" r="6" fill="#F5E2B3" stroke="#AF7E37" stroke-width="3"/>
+  <circle cx="253" cy="306" r="6" fill="#F5E2B3" stroke="#AF7E37" stroke-width="3"/>
+  <circle cx="310" cy="243" r="6" fill="#F5E2B3" stroke="#AF7E37" stroke-width="3"/>
+  <circle cx="381" cy="205" r="7" fill="#F5E2B3" stroke="#AF7E37" stroke-width="3"/>
+  <g filter="url(#coinshadow)"><circle cx="255" cy="178" r="68" fill="url(#coin)" stroke="#FDF3D4" stroke-width="6"/><circle cx="255" cy="178" r="54" stroke="#9C7132" stroke-opacity=".55" stroke-width="2"/><text x="255" y="199" text-anchor="middle" font-family="Georgia,serif" font-size="64" font-weight="bold" fill="#284735">$</text></g>
+  <path d="M326 145C331 117 351 99 384 98C378 131 361 150 332 153" fill="#789E73" stroke="#426C4E" stroke-width="3"/>
+  <path d="M329 151C345 127 359 116 379 106" stroke="#426C4E" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="113" cy="127" r="5" fill="#C59B55"/>
+  <circle cx="406" cy="156" r="4" fill="#C59B55"/>
+  <path d="M414 105V123M405 114H423" stroke="#A48148" stroke-width="2" stroke-linecap="round"/>
+  <path d="M101 277V294M92 285.5H110" stroke="#A48148" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,5 @@
+dash>=3.2,<4
+openai>=2.0,<3
+pydantic-ai-slim[openai]>=1.0,<2
+requests>=2.32,<3
+yfinance>=1.0,<2
