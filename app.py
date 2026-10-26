@@ -44,6 +44,13 @@ def feature_card(number: str, icon: str, title: str, copy: str, foot: str, delay
         className=f"feature-card reveal {delay}",
     )
 
+
+def holding_row(index: int, ticker: str = "", value: str = "") -> html.Div:
+    return html.Div([
+        html.Div(html.Label(["Ticker", dcc.Input(id={"type": "holding-ticker", "index": index}, value=ticker, placeholder="e.g. HLAL", type="text", className="holding-input")]), className="holding-field"),
+        html.Div(html.Label(["Current value (USD)", dcc.Input(id={"type": "holding-value", "index": index}, value=value, placeholder="e.g. 5000", type="number", min=0, className="holding-input")]), className="holding-field"),
+    ], className="holding-row")
+
 app.layout = html.Div(
     [
         dcc.Store(id="chat-history", storage_type="session", data=[{"role": "assistant", "content": WELCOME}]),
@@ -54,16 +61,15 @@ app.layout = html.Div(
         html.Div(id="scroll-signal", style={"display": "none"}),
         html.Header(html.Div([
             html.A([html.Img(src=app.get_asset_url("mian-mark.svg"), alt="", className="brand-mark"), html.Div([html.Div("MIAN CAPITAL", className="brand"), html.Div("Faith, money, and a plan", className="brand-sub")])], href="/", className="brand-lockup", **{"aria-label": "Mian Capital, home"}),
-            html.Nav([html.A("Home", href="/"), html.A("Learn", href="/#learn"), html.A("Paper Lab", href="/paper-lab"), html.A("Portfolio", href="/portfolio"), html.A("About", href="/about"), html.A("Mian.io", href="/#research", className="nav-cta")], className="top-nav", **{"aria-label": "Main navigation"}),
+            html.Nav([html.A("Home", href="/"), html.A("Learn", href="/learn"), html.A("Paper Lab", href="/paper-lab"), html.A("Portfolio Screening", href="/portfolio"), html.A("About", href="/about"), html.A("Mian.io", href="/mianio", className="nav-cta")], className="top-nav", **{"aria-label": "Main navigation"}),
         ], className="topbar-inner"), className="topbar"),
         html.Main([
             html.Section([
                 html.Div([
                     html.Div([html.Span(className="eyebrow-line"), "FOR PEOPLE READY TO BEGIN"], className="eyebrow"),
-                    html.H1(["Cash sitting in checking can lose ground to ", html.Em("inflation.")], className="hero-title"),
-                    html.P("When prices rise faster than your account's interest, each dollar buys less. If investing feels unfamiliar, we'll help you learn the accounts and look at funds through an Islamic lens before you take the next step.", className="hero-copy"),
-                    html.Div([html.A(["Start with the basics", html.Span("↗", **{"aria-hidden": "true"})], href="#learn", className="primary-cta"), html.A("Try Mian.io", href="#research", className="text-cta")], className="hero-actions"),
-                    html.Div([html.Span("LEARN THE ACCOUNTS"), html.Span(className="hero-dot"), html.Span("CHECK THE SOURCES"), html.Span(className="hero-dot"), html.Span("MOVE AT YOUR PACE")], className="hero-signals"),
+                    html.H1(["Cash in a checking account can lose value to ", html.Em("inflation.")], className="hero-title"),
+                    html.P("A dollar today may buy less tomorrow when prices rise faster than the interest it earns. If investing feels unfamiliar, we'll help you learn the accounts and look at funds through an Islamic lens before you take the next step.", className="hero-copy"),
+                    html.Div([html.A(["Start with the basics", html.Span("↗", **{"aria-hidden": "true"})], href="/learn", className="primary-cta"), html.A("Try Mian.io", href="/mianio", className="text-cta")], className="hero-actions"),
                 ], className="hero-content reveal"),
                 html.Div([
                     html.Img(src=app.get_asset_url("hero-wealth.svg"), alt="Illustration of a gold coin, rising bars, and a leaf inside an arch", className="hero-image"),
@@ -83,6 +89,11 @@ app.layout = html.Div(
                 ], className="feature-grid"),
             ], id="approach", className="approach-section"),
             html.Section([
+                html.Div([html.Div("MIAN.IO · FREE TO USE", className="eyebrow"), html.H2("Fund research that feels like a conversation."), html.P("Ask Mian.io about a fund in your own words. It can find a dated price, chart, recent news, and public screening sources. Follow-up questions use this browser session's conversation."), html.A("Open Mian.io ↗", href="/mianio", className="primary-cta")], className="mianio-intro reveal"),
+            ], className="research-section"),
+        ], id="home-page", className="page-content"),
+        html.Main([
+            html.Section([
                 html.Div([html.Div("MONEY BASICS", className="eyebrow"), html.H2("First, know the account. Then choose what goes inside."), html.P("A brokerage or retirement account is a container. Stocks, ETFs, and mutual funds are investments you might put in it. Knowing the difference makes the next step much less intimidating.")], className="section-heading reveal"),
                 html.Div([
                     html.Article([html.Span("01 / EVERYDAY INVESTING", className="learn-kicker"), html.H3("Brokerage account"), html.P("An account at a firm such as Fidelity, Schwab, or Vanguard where you can buy investments. A regular taxable account has no special retirement tax break."), html.A("Investor.gov account basics ↗", href="https://www.investor.gov/introduction-investing/investing-basics/investment-accounts/brokerage-accounts", target="_blank", rel="noopener noreferrer")], className="learn-card reveal delay-1"),
@@ -92,6 +103,8 @@ app.layout = html.Div(
                 ], className="learn-grid"),
                 html.Div([html.Strong("What goes inside?"), html.Span("A stock is a share of one company. An ETF or mutual fund holds a basket of investments; ETFs trade during the day, while mutual funds usually price once daily. The account type does not make its holdings Shariah-compliant—check the investments themselves."), html.A("See investment product basics ↗", href="https://www.investor.gov/introduction-investing/investing-basics/investment-products", target="_blank", rel="noopener noreferrer")], className="learn-footnote reveal"),
             ], id="learn", className="learn-section"),
+        ], id="learn-page", className="page-content subpage-content", hidden=True),
+        html.Main([
             html.Section([
                 html.Div([
                     html.Div("MIAN.IO · FREE TO USE", className="eyebrow"),
@@ -132,15 +145,15 @@ app.layout = html.Div(
                 ], className="side-card reveal delay-2"),
                 ], className="content-grid"),
             ], id="research", className="research-section"),
-        ], id="home-page", className="page-content"),
+        ], id="mianio-page", className="page-content subpage-content", hidden=True),
         html.Main([
             html.Section([
                 html.Div([
                     html.Div([html.Span(className="eyebrow-line"), "MEET WALI MIAN"], className="eyebrow"),
                     html.H1(["The first step ", html.Em("can be the hardest.")], className="subpage-title"),
                     html.Div("ABOUT YOUR ADVISOR", className="eyebrow about-bio-label"),
-                    html.P("I’m Wali Mian, a Yale School of Management student. I studied mathematics and actuarial science at UT Austin, then spent four years as an actuary working with 401(k)s, defined benefit and defined contribution plans, and pensions. I built Mian Capital to help people in my community get started while keeping their faith in view.", className="subpage-lede about-bio-copy"),
-                    html.A("Explore Mian.io ↗", href="/#research", className="primary-cta"),
+                    html.P("I’m Wali Mian, an MBA student at Yale School of Management. I studied mathematics and actuarial science at UT Austin and spent four years as an actuary working with retirement benefits, including 401(k), defined benefit, defined contribution, and pension plans. I started Mian Capital to help people in my community begin investing with more confidence while honoring their Islamic values.", className="subpage-lede about-bio-copy"),
+                    html.A("Explore Mian.io ↗", href="/mianio", className="primary-cta"),
                 ], className="about-hero-copy reveal"),
                 html.Div([
                     html.Img(src=app.get_asset_url("advisor-figurine.svg"), alt="Playful illustrated advisor figurine with glasses, a calculator, and a coin", className="advisor-figurine"),
@@ -161,7 +174,7 @@ app.layout = html.Div(
                 ], className="service-grid"),
                 html.P("Mian Capital’s current site offers education and setup guidance. It does not place trades or take control of client accounts through this website.", className="service-boundary"),
             ], className="account-section"),
-            html.Section([html.Div("TRY THE NUMBERS FOR YOURSELF", className="eyebrow"), html.H2("See an example before you risk a dollar."), html.P("Paper Lab shows what a past purchase would have done, or how a return rate you choose could compound. It's practice, not a prediction."), html.A("Open the Paper Lab ↗", href="/paper-lab", className="primary-cta")], className="about-close reveal"),
+            html.Section([html.Div("WRITE TO ME", className="eyebrow"), html.H2("Have a question about getting started?"), html.P("Tell me what you're trying to understand, whether that's opening an account or researching a fund. Please don't email account numbers, passwords, or other sensitive financial information."), html.A("wali.mian@yale.edu ↗", href="mailto:wali.mian@yale.edu", className="primary-cta")], className="about-close reveal"),
         ], id="about-page", className="page-content subpage-content", hidden=True),
         html.Main([
             html.Section([
@@ -193,17 +206,17 @@ app.layout = html.Div(
                 html.Div([html.Div([html.Span(className="eyebrow-line"), "YOUR HOLDINGS"], className="eyebrow"), html.H1(["Know what you've checked—", html.Em("and what you haven't.")], className="subpage-title"), html.P("Enter your holdings to see which fund strategies have a checked issuer description and which positions still need a closer look. This is evidence coverage, not a religious certification.", className="subpage-lede")], className="reveal"),
             ], className="portfolio-hero"),
             html.Section([
-                html.Div([html.Div("START WITH WHAT YOU OWN", className="eyebrow"), html.H2("Put your holdings on the table."), html.P("Paste one ticker and current USD market value per line. The sample is illustrative. You can add up to 20 holdings; no account connection or personal identity is needed.")], className="section-heading reveal"),
+                html.Div([html.Div("START WITH WHAT YOU OWN", className="eyebrow"), html.H2("Put your holdings on the table."), html.P("Enter each ticker and its current market value in dollars. The sample is illustrative. You can add up to 20 holdings; no account connection or personal identity is needed.")], className="section-heading reveal"),
                 html.Div([
                     html.Div([
-                        html.Label("Holdings: ticker, current market value (USD)", htmlFor="portfolio-input"),
-                        dcc.Textarea(id="portfolio-input", value="HLAL,5000\nSPUS,3000\nAMAGX,2000", className="portfolio-textarea"),
-                        html.Small("Example: HLAL,5000. Use today's position values, not share counts."),
+                        html.Div([holding_row(0, "HLAL", "5000"), holding_row(1, "SPUS", "3000"), holding_row(2, "AMAGX", "2000"), holding_row(3)], id="holding-rows", className="holding-rows"),
+                        html.Button("+ Add another holding", id="add-holding", n_clicks=0, className="add-holding"),
+                        html.Small("Use today's position values, not share counts. Leave an unused row blank."),
                         html.Div("Extra personal exclusions to flag for review", className="portfolio-exclusion-label"),
-                        dcc.Checklist(id="portfolio-exclusions", options=[{"label": "Alcohol businesses", "value": "alcohol"}, {"label": "High debt / leverage", "value": "high_debt"}, {"label": "Tobacco", "value": "tobacco"}, {"label": "Weapons", "value": "weapons"}, {"label": "Fossil fuels", "value": "fossil_fuels"}], value=[], className="portfolio-checklist"),
+                        dcc.Checklist(id="portfolio-exclusions", options=[{"label": "Alcohol", "value": "alcohol"}, {"label": "Gambling", "value": "gambling"}, {"label": "High debt / leverage", "value": "high_debt"}, {"label": "Tobacco", "value": "tobacco"}, {"label": "Ordnance", "value": "ordnance"}, {"label": "Fossil fuels", "value": "fossil_fuels"}], value=[], className="portfolio-checklist"),
                         html.Div([html.Div([html.Label("Show fund focus"), dcc.Dropdown(id="portfolio-region", options=[{"label": "All holdings", "value": "all"}, {"label": "US-focused", "value": "us"}, {"label": "International-focused", "value": "international"}, {"label": "Global mandate", "value": "global"}, {"label": "Region not verified", "value": "unknown"}], value="all", clearable=False, className="portfolio-select")], className="field"), html.Div([html.Label("Sort holdings"), dcc.Dropdown(id="portfolio-sort", options=[{"label": "Largest position first", "value": "weight"}, {"label": "Ticker A–Z", "value": "ticker"}, {"label": "Needs review first", "value": "review"}], value="weight", clearable=False, className="portfolio-select")], className="field")], className="portfolio-filter-fields"),
                         html.Button("Review my portfolio", id="portfolio-run", n_clicks=0, className="paper-run"),
-                        html.P("Filters use a fund's stated focus, not a verified breakdown of its holdings. Alcohol and high-debt checks need current constituent data. The form resets on reload.", className="paper-form-note"),
+                        html.P("Filters use a fund's stated focus, not a verified breakdown of its holdings. Personal exclusion flags need current constituent or financial data. The form resets on reload.", className="paper-form-note"),
                     ], className="paper-form reveal delay-1"),
                     html.Div([html.Div("YOUR EVIDENCE VIEW", className="form-kicker"), html.Div("Run a review to see coverage and holding-level sources.", id="portfolio-result", className="paper-result-empty")], className="paper-output reveal delay-2"),
                 ], className="paper-workspace"),
@@ -396,16 +409,14 @@ def complete_agent_turn(_, pending, history):
     Output("about-page", "hidden"),
     Output("paper-page", "hidden"),
     Output("portfolio-page", "hidden"),
+    Output("learn-page", "hidden"),
+    Output("mianio-page", "hidden"),
     Input("site-location", "pathname"),
 )
 def show_page(pathname):
-    if pathname == "/about":
-        return True, False, True, True
-    if pathname == "/paper-lab":
-        return True, True, False, True
-    if pathname == "/portfolio":
-        return True, True, True, False
-    return False, True, True, True
+    pages = {"/": 0, "/about": 1, "/paper-lab": 2, "/portfolio": 3, "/learn": 4, "/mianio": 5}
+    selected = pages.get(pathname or "/", 0)
+    return tuple(index != selected for index in range(6))
 
 
 @app.callback(
@@ -470,11 +481,26 @@ def render_paper_history(positions):
     return [html.Div([html.Div([html.Strong(item["ticker"]), html.Span("LOOK BACK" if item["mode"] == "historical" else "LOOK AHEAD", className="history-mode")]), html.Div(item["context"], className="history-context"), html.Div([html.Span(_money(item["initial_amount"])), html.Span("→"), html.Strong(_money(item["ending_value"]))], className="history-values")], className="history-card") for item in reversed(positions)]
 
 
-@app.callback(Output("portfolio-result", "children"), Input("portfolio-run", "n_clicks"), Input("portfolio-region", "value"), Input("portfolio-sort", "value"), State("portfolio-input", "value"), State("portfolio-exclusions", "value"), prevent_initial_call=True)
-def run_portfolio_review(n_clicks, region, sort_by, holdings_text, exclusions):
+@app.callback(Output("holding-rows", "children"), Input("add-holding", "n_clicks"), State("holding-rows", "children"), prevent_initial_call=True)
+def add_holding_row(n_clicks, rows):
+    if not n_clicks or len(rows or []) >= 20:
+        return no_update
+    return [*(rows or []), holding_row(len(rows or []))]
+
+
+@app.callback(Output("portfolio-result", "children"), Input("portfolio-run", "n_clicks"), Input("portfolio-region", "value"), Input("portfolio-sort", "value"), State({"type": "holding-ticker", "index": ALL}, "value"), State({"type": "holding-value", "index": ALL}, "value"), State("portfolio-exclusions", "value"), prevent_initial_call=True)
+def run_portfolio_review(n_clicks, region, sort_by, tickers, values, exclusions):
     if not n_clicks:
         return no_update
     try:
+        holdings = []
+        for ticker, value in zip(tickers, values):
+            if not str(ticker or "").strip() and (value is None or str(value).strip() == ""):
+                continue
+            if not str(ticker or "").strip() or value is None or str(value).strip() == "":
+                raise PortfolioInputError("Complete both fields for each holding, or leave the row blank.")
+            holdings.append(f"{str(ticker).strip()},{value}")
+        holdings_text = "\n".join(holdings)
         result = analyze_portfolio(holdings_text, exclusions)
         displayed = visible_holdings(result, region, sort_by)
     except PortfolioInputError as exc:

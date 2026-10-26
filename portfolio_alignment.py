@@ -17,18 +17,20 @@ REGION_LABELS = {
 }
 
 EXCLUSION_LABELS = {
-    "alcohol": "Alcohol businesses",
+    "alcohol": "Alcohol",
+    "gambling": "Gambling",
     "high_debt": "High debt / leverage",
     "tobacco": "Tobacco",
-    "weapons": "Weapons",
+    "ordnance": "Ordnance",
     "fossil_fuels": "Fossil fuels",
 }
 
 EXCLUSION_NOTES = {
     "alcohol": "Issuer Shariah strategies may exclude alcohol, but current holdings and revenue exposure were not independently checked.",
+    "gambling": "Current constituent exposure to gambling was not independently checked.",
     "high_debt": "No company debt ratios were calculated. Screening standards use different denominators and thresholds, so this needs a chosen method and current financial data.",
     "tobacco": "Current constituent exposure to tobacco was not checked.",
-    "weapons": "Current constituent exposure to weapons was not checked.",
+    "ordnance": "Current constituent exposure to ordnance was not checked.",
     "fossil_fuels": "Current constituent exposure to fossil fuels was not checked.",
 }
 
