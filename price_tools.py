@@ -50,6 +50,9 @@ def get_stock_price(ticker: str, start: str, stop: str) -> dict:
         amount = float(value)
         if math.isfinite(amount) and amount > 0:
             rows.append({"date": stamp.date().isoformat(), "close_usd": round(amount, 4)})
+    # Before the 4 p.m. New York close, Yahoo's row for today is a live price, not a close.
+    if rows and rows[-1]["date"] == today.isoformat() and datetime.now(ZoneInfo("America/New_York")).hour < 16:
+        rows.pop()
     if not rows:
         raise PriceToolError("No valid closing prices were returned.")
     shown = rows if len(rows) <= 24 else rows[:12] + rows[-12:]

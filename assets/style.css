@@ -83,6 +83,12 @@ a { color:inherit; }
 .stories-hero-art { min-height:220px; display:flex; flex-direction:column; justify-content:center; align-items:center; border:1px solid #bad2b8; border-radius:22px; background:radial-gradient(circle at 50% 40%,#f7e5b5,#d7e8cb 72%); transform:rotate(3deg); box-shadow:12px 14px 0 rgba(28,74,50,.07); }
 .stories-hero-number { color:#285a42; font:600 96px/.95 'Playfair Display',Georgia,serif; }
 .stories-hero-line { max-width:180px; color:#31543e; font:600 15px/1.35 'Playfair Display',Georgia,serif; text-align:center; }
+.testimonial-feature { margin-top:29px; padding:36px 43px 34px; border:1px solid #c7dbbf; border-radius:20px; background:linear-gradient(130deg,#f8f8f1,#e8f2e3); }
+.testimonial-feature h2 { max-width:830px; color:var(--forest); font:600 clamp(28px,3vw,41px)/1.18 'Playfair Display',Georgia,serif; margin:8px 0 17px; }
+.testimonial-feature > p:not(.testimonial-source) { max-width:900px; color:#425d4b; font-size:15px; line-height:1.75; margin:0 0 20px; }
+.tester-tags { display:flex; flex-wrap:wrap; gap:9px; margin-bottom:19px; }
+.tester-tags span { padding:8px 12px; border:1px solid #bad2b5; border-radius:30px; background:#fff; color:#2a6141; font-size:11px; font-weight:700; }
+.testimonial-feature .testimonial-source { max-width:900px; padding-top:15px; border-top:1px solid #cfddc8; color:#6a7f6c; font-size:11px; line-height:1.6; margin:0; }
 .stories-section { padding-top:72px; }
 .stories-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
 .story-card { min-width:0; display:flex; flex-direction:column; padding:27px 29px 30px; border:1px solid #d9e5d5; border-radius:19px; background:#fff; box-shadow:0 10px 29px rgba(22,49,34,.04); }
@@ -308,3 +314,4 @@ a { color:inherit; }
 
 @media(max-width:480px) { .holding-row { grid-template-columns:1fr; gap:9px; } }
 @media(max-width:800px) { .stories-hero { grid-template-columns:1fr; padding:38px 30px; } .stories-hero-art { min-height:165px; max-width:290px; width:100%; margin:auto; } .stories-grid { grid-template-columns:1fr; } .stories-feedback { padding:33px 28px; } }
+@media(max-width:800px) { .testimonial-feature { padding:32px 29px; } }

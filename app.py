@@ -61,7 +61,7 @@ app.layout = html.Div(
         html.Div(id="scroll-signal", style={"display": "none"}),
         html.Header(html.Div([
             html.A([html.Img(src=app.get_asset_url("mian-mark.svg"), alt="", className="brand-mark"), html.Div([html.Div("MIAN CAPITAL", className="brand"), html.Div("Faith, money, and a plan", className="brand-sub")])], href="/", className="brand-lockup", **{"aria-label": "Mian Capital, home"}),
-            html.Nav([html.A("Home", href="/"), html.A("Learn", href="/learn"), html.A("Paper Lab", href="/paper-lab"), html.A("Portfolio Screening", href="/portfolio"), html.A("About", href="/about"), html.A("Stories", href="/stories"), html.A("Mian.io", href="/mianio", className="nav-cta")], className="top-nav", **{"aria-label": "Main navigation"}),
+            html.Nav([html.A("Home", href="/"), html.A("Learn", href="/learn"), html.A("Paper Lab", href="/paper-lab"), html.A("Portfolio Screening", href="/portfolio"), html.A("About", href="/about"), html.A("Testimonials", href="/testimonials"), html.A("Mian.io", href="/mianio", className="nav-cta")], className="top-nav", **{"aria-label": "Main navigation"}),
         ], className="topbar-inner"), className="topbar"),
         html.Main([
             html.Section([
@@ -178,11 +178,18 @@ app.layout = html.Div(
         ], id="about-page", className="page-content subpage-content", hidden=True),
         html.Main([
             html.Section([
-                html.Div([html.Div("TWO WAYS TO START", className="eyebrow"), html.H1(["Your first question ", html.Em("has a place here.")], className="subpage-title"), html.P("Here are two examples you can try with the tools on this site. They illustrate possible workflows; they are not customer testimonials or measured user outcomes.", className="subpage-lede")], className="stories-hero-copy reveal"),
-                html.Div([html.Span("01", className="stories-hero-number"), html.Span("A question is enough to begin.", className="stories-hero-line")], className="stories-hero-art reveal delay-1"),
+                html.Div([html.Div("EARLY USER FEEDBACK", className="eyebrow"), html.H1(["How one person ", html.Em("used Mian Capital.")], className="subpage-title"), html.P("A person Wali knows tried the tools and shared what stood out. Their feedback is paraphrased below with permission; no timing or financial outcome was recorded.", className="subpage-lede")], className="stories-hero-copy reveal"),
+                html.Div([html.Span("01", className="stories-hero-number"), html.Span("early tester", className="stories-hero-line")], className="stories-hero-art reveal delay-1"),
             ], className="stories-hero"),
             html.Section([
-                html.Div([html.Div("ILLUSTRATIVE WALKTHROUGHS", className="eyebrow"), html.H2("See where a question can lead."), html.P("These examples use sample questions and holdings. They show what the app can do today, including where it needs more evidence.")], className="section-heading reveal"),
+                html.Div("AN ANONYMOUS FIRST IMPRESSION", className="eyebrow"),
+                html.H2("A price comparison led to a bigger conversation."),
+                html.P("The tester told Wali that Mian.io made it quick to compare HLAL and SPUS prices. They also used Paper Lab to explore a trade they had considered about a month earlier but had not placed. Working through the scenario helped them feel more confident about the decision they were weighing. After trying the site, they contacted Wali for help setting up a brokerage account."),
+                html.Div([html.Span("HLAL + SPUS price research"), html.Span("Paper Lab scenario"), html.Span("Account setup question")], className="tester-tags"),
+                html.P("Anonymous paraphrase shared with the tester's permission. This is a subjective account relayed by Wali Mian, not a timed comparison, endorsement of a specific investment, or evidence of a trade outcome.", className="testimonial-source"),
+            ], className="testimonial-feature reveal"),
+            html.Section([
+                html.Div([html.Div("TRY THE TOOLS YOURSELF", className="eyebrow"), html.H2("Two ways to give it a try."), html.P("The examples below use sample questions and holdings. They show what the app can do today, including where it needs more evidence.")], className="section-heading reveal"),
                 html.Div([
                     html.Article([
                         html.Div([html.Span("01 / PORTFOLIO SCREENING", className="story-kicker"), html.Img(src=app.get_asset_url("icon-values.svg"), alt="", className="story-icon")], className="story-card-top"),
@@ -419,9 +426,13 @@ def submit_message(_, __, ___, text, history, pending):
     Output("agent-poll", "disabled", allow_duplicate=True), Input("agent-poll", "n_intervals"),
     State("pending-request", "data"), State("chat-history", "data"), prevent_initial_call=True,
 )
-def complete_agent_turn(_, pending, history):
+def complete_agent_turn(n_intervals, pending, history):
     if not pending:
         return no_update, no_update, True
+    # Resetting n_intervals to 0 also triggers this callback; run only on the timer tick,
+    # otherwise each question would call the agent (and bill tokens) twice.
+    if not n_intervals:
+        return no_update, no_update, no_update
     try:
         result = run_agent(pending["text"], PORTFOLIO_PATH, (history or [])[:-1])
         reply = {"role": "assistant", "content": result["text"], "tool_events": result.get("tool_events", []), "usage": result.get("usage")}
@@ -441,7 +452,7 @@ def complete_agent_turn(_, pending, history):
     Input("site-location", "pathname"),
 )
 def show_page(pathname):
-    pages = {"/": 0, "/about": 1, "/paper-lab": 2, "/portfolio": 3, "/learn": 4, "/mianio": 5, "/stories": 6}
+    pages = {"/": 0, "/about": 1, "/paper-lab": 2, "/portfolio": 3, "/learn": 4, "/mianio": 5, "/stories": 6, "/testimonials": 6}
     selected = pages.get(pathname or "/", 0)
     return tuple(index != selected for index in range(7))
 

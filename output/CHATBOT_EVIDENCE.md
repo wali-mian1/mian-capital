@@ -73,3 +73,15 @@ A local Chromium check on October 26 confirmed exactly one visible page on `/`, 
 ## October 26 Stories page
 
 The `/stories` route contains two illustrative, internally consistent walkthroughs and a feedback invitation, explicitly distinguished from customer testimonials. The portfolio scenario uses the existing $5,000 HLAL, $3,000 SPUS, $2,000 AMAGX sample (80% issuer-described strategy evidence, 20% source review). The research scenario describes an on-demand SPUS news quick question and optional dated price follow-up, without claiming a daily automated briefing. Chromium checks confirmed the Stories tab immediately precedes Mian.io, its links lead to Portfolio Screening and Mian.io, its mailto link opens the founder address, and no horizontal overflow at 1440px or 390px. Screenshot: `mian-capital-stories.png`. No real-user quote or outcome was collected.
+
+## October 26 permissioned tester account
+
+The student later confirmed that an actual acquaintance tested the app and permitted an anonymous paraphrase. According to Wali, the person compared HLAL and SPUS prices quickly, used Paper Lab to revisit a trade considered about a month earlier, felt more confident in considering that decision, and contacted Wali about brokerage account setup. No timings, comparator workflow, verbatim quotation, identity, trade, or investment outcome were recorded. This is founder-reported qualitative feedback, not independently measured impact. The public tab is now `/testimonials`, with `/stories` retained as an alias. Screenshot: `mian-capital-testimonials.png`.
+
+## October 26 provider fallback and live recheck
+
+The Portkey key returned HTTP 412 ("API Key Usage Limit Exceeded") on a live chat call. At the student's request, `agent.py` now tries `PORTKEY_API_KEY` first and retries the same `gpt-6-luna` turn once with `OPENAI_API_KEY` directly against OpenAI when Portkey is missing or rejects the key (401, 402, 403, 412, 429). A live check of "What was HLAL latest closing price?" logged `provider_fallback` from Portkey (412), then completed through OpenAI with one `get_stock_price` call: 10,976 input tokens, 5,285 cached, 82 output tokens, two model requests.
+
+That run, made at 11:52 a.m. New York time on a trading day, labeled Yahoo's still-moving October 26 price as a close. `price_tools.py` now drops today's row before 4 p.m. New York time, so the latest close is the prior session's (HLAL $72.51 on October 23, 2026, checked directly).
+
+A browser check after the fallback found that each chat question started two agent runs (two `agent_start` events and two `agent_complete` events for one SPUS question). Resetting the poll timer's `n_intervals` to 0 also triggered the completion callback before its first tick. `complete_agent_turn` now runs only on the tick. A follow-up "AMAGX price + chart" quick question logged exactly one run (11,347 input, 10,584 cached, 332 output tokens; one `get_stock_price` call) and displayed the October 23, 2026 close of $105.66 with a chart. The per-run token figures in the report are unaffected; before this fix, actual per-question spend was about double.

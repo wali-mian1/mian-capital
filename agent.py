@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 from openai import AsyncOpenAI
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.capabilities import NativeTool
+from pydantic_ai.exceptions import ModelHTTPError
 from pydantic_ai.messages import NativeToolCallPart, NativeToolReturnPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.openai import OpenAIResponsesModel
 from pydantic_ai.native_tools import WebSearchTool
@@ -34,9 +35,8 @@ _BLOCKED_REQUEST = re.compile(
 )
 
 
-def _load_key() -> str:
-    if os.environ.get("PORTKEY_API_KEY"):
-        return os.environ["PORTKEY_API_KEY"]
+def _load_env() -> None:
+    """Fill missing keys from .env in this project, then the folder above it."""
     for env_path in (HERE / ".env", HERE.parent / ".env"):
         if not env_path.exists():
             continue
@@ -48,9 +48,24 @@ def _load_key() -> str:
                 clean_secret = secret.strip().strip('"').strip("'")
                 if clean_secret and not os.environ.get(clean_key):
                     os.environ[clean_key] = clean_secret
-        if os.environ.get("PORTKEY_API_KEY"):
-            return os.environ["PORTKEY_API_KEY"]
-    raise RuntimeError("PORTKEY_API_KEY is missing. Put it in .env here or one folder above this project.")
+
+
+def _providers() -> list[tuple[str, AsyncOpenAI]]:
+    """Portkey (course key) first; a direct OpenAI key is the fallback."""
+    _load_env()
+    providers = []
+    if os.environ.get("PORTKEY_API_KEY"):
+        providers.append(("portkey", AsyncOpenAI(api_key=os.environ["PORTKEY_API_KEY"], base_url="https://api.portkey.ai/v1", timeout=50)))
+    if os.environ.get("OPENAI_API_KEY"):
+        providers.append(("openai", AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"], timeout=50)))
+    if not providers:
+        raise RuntimeError("No API key found. Put PORTKEY_API_KEY or OPENAI_API_KEY in .env here or one folder above this project.")
+    return providers
+
+
+def _should_fall_back(exc: Exception) -> bool:
+    """Retry on the next provider only for key, quota, or usage-limit rejections."""
+    return isinstance(exc, ModelHTTPError) and exc.status_code in {401, 402, 403, 412, 429}
 
 
 def _audit(event: dict) -> None:
@@ -85,8 +100,7 @@ The website draws a price chart automatically from get_stock_price output. If a 
 Use concise plain language. Do not expose tool names, JSON, token counts, or recovered intermediate errors in the visitor-facing answer. Finish after the needed tools. If the final lookup errors or gives no data, say so in ordinary language rather than guessing."""
 
 
-def _build_agent() -> Agent:
-    client = AsyncOpenAI(api_key=_load_key(), base_url="https://api.portkey.ai/v1", timeout=50)
+def _build_agent(client: AsyncOpenAI) -> Agent:
     model = OpenAIResponsesModel(MODEL, provider=OpenAIProvider(openai_client=client))
     research = Agent(
         model,
@@ -167,7 +181,16 @@ def run_agent(user_text: str, portfolio_path: str | Path, conversation_history: 
     )
     _audit({"event": "agent_start", "model": MODEL, "request_chars": len(question), "ticker_mentions": mentions})
     try:
-        result = _build_agent().run_sync(prompt, usage_limits=UsageLimits(request_limit=4, tool_calls_limit=4, output_tokens_limit=2000))
+        providers = _providers()
+        for index, (provider, client) in enumerate(providers):
+            try:
+                result = _build_agent(client).run_sync(prompt, usage_limits=UsageLimits(request_limit=4, tool_calls_limit=4, output_tokens_limit=2000))
+                break
+            except Exception as exc:
+                if index + 1 < len(providers) and _should_fall_back(exc):
+                    _audit({"event": "provider_fallback", "model": MODEL, "from": provider, "status_code": exc.status_code})
+                    continue
+                raise
         usage = result.usage
         usage_data = {
             "input_tokens": usage.input_tokens,
@@ -182,8 +205,8 @@ def run_agent(user_text: str, portfolio_path: str | Path, conversation_history: 
         missing = [url for url in urls if url not in answer]
         if missing:
             answer += "\n\nPrice source: " + ", ".join(missing)
-        _audit({"event": "agent_complete", "model": MODEL, "tools": [event["name"] for event in events], "usage": usage_data})
-        return {"text": answer, "tool_events": events, "usage": usage_data}
+        _audit({"event": "agent_complete", "model": MODEL, "provider": provider, "tools": [event["name"] for event in events], "usage": usage_data})
+        return {"text": answer, "tool_events": events, "usage": usage_data, "provider": provider}
     except Exception as exc:
         _audit({"event": "agent_error", "model": MODEL, "error_type": type(exc).__name__})
         raise
