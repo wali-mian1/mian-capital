@@ -69,7 +69,11 @@ def analyze_portfolio(text: str, exclusions: list[str] | None = None) -> dict:
         fund = FUNDS.get(symbol)
         region = fund.get("region", "unknown") if fund else "unknown"
         region_values[region] += value
-        if fund and fund.get("source_checked_on"):
+        if fund and fund.get("category") == "benchmark":
+            status = "Market comparison · no Shariah screen established"
+            unknown_value += value
+            explanation = "SPY and QQQ are broad-market comparison ETFs. This app does not classify them as Shariah-compliant; review the underlying holdings against your chosen methodology."
+        elif fund and fund.get("source_checked_on"):
             status = "Issuer-described screened strategy"
             supported_value += value
             explanation = fund["screening_basis"]

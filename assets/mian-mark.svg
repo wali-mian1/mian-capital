@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Mian Capital monogram</title>
+  <defs>
+    <linearGradient id="field" x1="5" y1="4" x2="57" y2="62" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#246C4B"/>
+      <stop offset="1" stop-color="#123C30"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="12" y1="8" x2="51" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F1DC9E"/>
+      <stop offset="1" stop-color="#BE9853"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="62" height="62" rx="17" fill="url(#field)" stroke="#D8C28A" stroke-width="1.5"/>
+  <path d="M11 47V28C11 16.4 20.4 7 32 7C43.6 7 53 16.4 53 28V47" stroke="url(#gold)" stroke-width="1.5" opacity=".9"/>
+  <path d="M18 44V23L32 40L46 23V44" stroke="#F7F5E8" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M13 51H51" stroke="url(#gold)" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="32" cy="17" r="2" fill="#E7CB85"/>
+</svg>

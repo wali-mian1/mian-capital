@@ -45,6 +45,26 @@ FUNDS = {
         "region": "unknown",
         "source_checked_on": None,
     },
+    "AMDWX": {
+        "name": "Amana Developing World Fund",
+        "kind": "Mutual fund",
+        "issuer": "Saturna Capital",
+        "issuer_description": "Amana Developing World Fund is an Amana mutual fund; review its current issuer materials before drawing a screening conclusion.",
+        "source_url": "https://www.saturna.com/amana/developing-world-fund",
+        "screening_basis": "Issuer review pending; current holdings and ratios are not checked here.",
+        "region": "international",
+        "source_checked_on": None,
+    },
+    "AMAPX": {
+        "name": "Amana Participation Fund Investor Shares",
+        "kind": "Mutual fund",
+        "issuer": "Saturna Capital",
+        "issuer_description": "Amana Participation Fund Investor Shares are listed in USD; review current issuer materials before drawing a screening conclusion.",
+        "source_url": "https://www.saturna.com/amana/participation-fund",
+        "screening_basis": "Issuer review pending; current holdings and ratios are not checked here.",
+        "region": "unknown",
+        "source_checked_on": None,
+    },
     "SPRE": {
         "name": "SP Funds S&P Global REIT Sharia ETF",
         "kind": "ETF",
@@ -85,19 +105,47 @@ FUNDS = {
         "region": "international",
         "source_checked_on": "2026-10-25",
     },
+    "SPY": {
+        "name": "SPDR S&P 500 ETF Trust",
+        "kind": "Market comparison ETF",
+        "issuer": "State Street",
+        "issuer_description": "SPY tracks the S&P 500 and is included only as a broad US market comparison, with no Shariah-screening claim.",
+        "source_url": "https://www.ssga.com/us/en/individual/etfs/spdr-sp-500-etf-trust-spy",
+        "screening_basis": "Market comparison only; do not treat this holding as Shariah-screened.",
+        "region": "us",
+        "source_checked_on": None,
+        "category": "benchmark",
+    },
+    "QQQ": {
+        "name": "Invesco QQQ Trust",
+        "kind": "Market comparison ETF",
+        "issuer": "Invesco",
+        "issuer_description": "QQQ tracks the Nasdaq-100, not the Nasdaq Composite, and is included only as a market comparison with no Shariah-screening claim.",
+        "source_url": "https://www.invesco.com/qqq-etf/en/home.html",
+        "screening_basis": "Market comparison only; do not treat this holding as Shariah-screened.",
+        "region": "us",
+        "source_checked_on": None,
+        "category": "benchmark",
+    },
 }
 
 ALLOWED_TICKERS = frozenset(FUNDS)
+BENCHMARK_TICKERS = frozenset(ticker for ticker, fund in FUNDS.items() if fund.get("category") == "benchmark")
+SHARIAH_RESEARCH_TICKERS = ALLOWED_TICKERS - BENCHMARK_TICKERS
 
 ALIASES = {
     "HLAL": ("wahed ftse usa shariah etf", "wahed usa shariah etf", "wahed ftse usa shariah"),
     "SPUS": ("sp funds s p 500 sharia industry exclusions etf", "sp funds s p 500 sharia etf"),
     "AMANX": ("amana income fund", "amana income"),
     "AMAGX": ("amana growth fund", "amana growth"),
+    "AMDWX": ("amana developing world fund", "amana developing world"),
+    "AMAPX": ("amana participation fund", "amana participation", "amana participation fund investor shares"),
     "SPRE": ("sp funds s p global reit sharia etf", "sp funds global reit sharia etf"),
     "SPSK": ("sp funds dow jones global sukuk etf", "dow jones global sukuk etf"),
     "UMMA": ("wahed dow jones islamic world etf", "wahed islamic world etf"),
     "SPWO": ("sp funds s p world ex us sharia industry exclusions etf", "sp funds world ex us sharia etf"),
+    "SPY": ("spdr s p 500 etf trust", "s p 500 etf", "spdr spy"),
+    "QQQ": ("invesco qqq trust", "nasdaq 100 etf", "nasdaq 100", "invesco qqq"),
 }
 
 
@@ -122,15 +170,17 @@ def fund_profile(ticker: str) -> dict:
         return {
             "ticker": symbol,
             "status": "outside_current_universe",
-            "message": "This release supports HLAL, SPUS, AMANX, AMAGX, SPRE, SPSK, UMMA, and SPWO only. No compliance conclusion is available for this ticker.",
+            "message": "This ticker is outside the current research list. No compliance conclusion is available.",
         }
     return {
         "ticker": symbol,
         **FUNDS[symbol],
-        "status": "issuer_described_only" if FUNDS[symbol]["source_checked_on"] else "needs_source_review",
+        "status": "market_comparison_only" if symbol in BENCHMARK_TICKERS else ("issuer_described_only" if FUNDS[symbol]["source_checked_on"] else "needs_source_review"),
         "finding": (
-            "Issuer describes an Islamic or Shariah-oriented strategy; this app has not independently certified compliance."
-            if FUNDS[symbol]["source_checked_on"]
-            else "The fund is presented as Islamic-oriented, but the official source was not verified in this session. Review the issuer page before relying on this claim."
+            "This is a broad-market comparison, not a Shariah-screened holding."
+            if symbol in BENCHMARK_TICKERS
+            else ("Issuer describes an Islamic or Shariah-oriented strategy; this app has not independently certified compliance."
+                  if FUNDS[symbol]["source_checked_on"]
+                  else "This Amana fund needs a current official-source review before any screening claim is relied on.")
         ),
     }
