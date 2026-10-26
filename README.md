@@ -36,7 +36,7 @@ python3 -m venv .venv
 
 Open http://127.0.0.1:8050/ . On Windows, use `.venv\Scripts\python` instead of `.venv/bin/python`.
 
-The app reads `PORTKEY_API_KEY` and `OPENAI_API_KEY` from the process environment, then `.env` in this repository, then `.env` one folder above it. The teaching staff can place `.env` next to the cloned repo. Both key names are listed in `.env.example`; never commit a real value. The chatbot uses `gpt-6-luna` through Portkey's Responses API with `PORTKEY_API_KEY` first. If that key is missing, or Portkey rejects it for authorization, quota, or usage limits (HTTP 401, 402, 403, 412, or 429), the same `gpt-6-luna` turn is retried once directly against OpenAI with `OPENAI_API_KEY`. Either key alone is enough to run the chat. The audit log records which provider answered, never the key.
+The app reads `OPENAI_API_KEY` from the process environment, then `.env` in this repository, then `.env` one folder above it. The teaching staff can place `.env` next to the cloned repo. The key name is listed in `.env.example`; never commit a real value. The chatbot calls `gpt-6-luna` directly through OpenAI's Responses API. (Earlier development runs in the evidence log were routed through Portkey; that key's usage allowance ran out on October 26, 2026, so the app no longer uses it.)
 
 Both yfinance and native web search require internet access. Yahoo Finance may throttle requests, and market prices may be delayed. The app returns an error rather than inventing a quote when no price is available.
 
@@ -45,7 +45,7 @@ Both yfinance and native web search require internet access. Yahoo Finance may t
 | File | Purpose |
 | --- | --- |
 | `app.py` | Dash chat UI, Enter-to-send, conversation state, tool display |
-| `agent.py` | PydanticAI, Portkey Responses model with direct OpenAI fallback, native web search, tool tracing, guardrails |
+| `agent.py` | PydanticAI, OpenAI Responses model (`gpt-6-luna`), native web search, tool tracing, guardrails |
 | `price_tools.py` | yfinance `get_stock_price` implementation |
 | `funds.py` | Supported tickers, name aliases, issuer references |
 | `paper_trader.py` | Bounded historical and hypothetical paper-money calculations using Yahoo prices |

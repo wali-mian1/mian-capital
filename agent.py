@@ -14,7 +14,6 @@ from zoneinfo import ZoneInfo
 from openai import AsyncOpenAI
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.capabilities import NativeTool
-from pydantic_ai.exceptions import ModelHTTPError
 from pydantic_ai.messages import NativeToolCallPart, NativeToolReturnPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.openai import OpenAIResponsesModel
 from pydantic_ai.native_tools import WebSearchTool
@@ -29,7 +28,7 @@ AUDIT_PATH = HERE / "output" / "audit.jsonl"
 MODEL = "gpt-6-luna"
 _AUDIT_LOCK = threading.Lock()
 _BLOCKED_REQUEST = re.compile(
-    r"(?:reveal|show|print|give|leak|expose|read|open|ignore.{0,35}instructions).{0,70}(?:api.?key|portkey|\.env|system prompt|hidden instructions|secret)"
+    r"(?:reveal|show|print|give|leak|expose|read|open|ignore.{0,35}instructions).{0,70}(?:api.?key|openai.?key|portkey|\.env|system prompt|hidden instructions|secret)"
     r"|(?:api.?key|portkey|\.env|system prompt|hidden instructions|secret).{0,70}(?:reveal|show|print|give|leak|expose)",
     re.IGNORECASE,
 )
@@ -50,22 +49,11 @@ def _load_env() -> None:
                     os.environ[clean_key] = clean_secret
 
 
-def _providers() -> list[tuple[str, AsyncOpenAI]]:
-    """Portkey (course key) first; a direct OpenAI key is the fallback."""
+def _client() -> AsyncOpenAI:
     _load_env()
-    providers = []
-    if os.environ.get("PORTKEY_API_KEY"):
-        providers.append(("portkey", AsyncOpenAI(api_key=os.environ["PORTKEY_API_KEY"], base_url="https://api.portkey.ai/v1", timeout=50)))
-    if os.environ.get("OPENAI_API_KEY"):
-        providers.append(("openai", AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"], timeout=50)))
-    if not providers:
-        raise RuntimeError("No API key found. Put PORTKEY_API_KEY or OPENAI_API_KEY in .env here or one folder above this project.")
-    return providers
-
-
-def _should_fall_back(exc: Exception) -> bool:
-    """Retry on the next provider only for key, quota, or usage-limit rejections."""
-    return isinstance(exc, ModelHTTPError) and exc.status_code in {401, 402, 403, 412, 429}
+    if not os.environ.get("OPENAI_API_KEY"):
+        raise RuntimeError("OPENAI_API_KEY is missing. Put it in .env here or one folder above this project.")
+    return AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"], timeout=50)
 
 
 def _audit(event: dict) -> None:
@@ -181,16 +169,7 @@ def run_agent(user_text: str, portfolio_path: str | Path, conversation_history: 
     )
     _audit({"event": "agent_start", "model": MODEL, "request_chars": len(question), "ticker_mentions": mentions})
     try:
-        providers = _providers()
-        for index, (provider, client) in enumerate(providers):
-            try:
-                result = _build_agent(client).run_sync(prompt, usage_limits=UsageLimits(request_limit=4, tool_calls_limit=4, output_tokens_limit=2000))
-                break
-            except Exception as exc:
-                if index + 1 < len(providers) and _should_fall_back(exc):
-                    _audit({"event": "provider_fallback", "model": MODEL, "from": provider, "status_code": exc.status_code})
-                    continue
-                raise
+        result = _build_agent(_client()).run_sync(prompt, usage_limits=UsageLimits(request_limit=4, tool_calls_limit=4, output_tokens_limit=2000))
         usage = result.usage
         usage_data = {
             "input_tokens": usage.input_tokens,
@@ -205,8 +184,8 @@ def run_agent(user_text: str, portfolio_path: str | Path, conversation_history: 
         missing = [url for url in urls if url not in answer]
         if missing:
             answer += "\n\nPrice source: " + ", ".join(missing)
-        _audit({"event": "agent_complete", "model": MODEL, "provider": provider, "tools": [event["name"] for event in events], "usage": usage_data})
-        return {"text": answer, "tool_events": events, "usage": usage_data, "provider": provider}
+        _audit({"event": "agent_complete", "model": MODEL, "tools": [event["name"] for event in events], "usage": usage_data})
+        return {"text": answer, "tool_events": events, "usage": usage_data}
     except Exception as exc:
         _audit({"event": "agent_error", "model": MODEL, "error_type": type(exc).__name__})
         raise
