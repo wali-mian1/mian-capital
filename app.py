@@ -61,7 +61,7 @@ app.layout = html.Div(
         html.Div(id="scroll-signal", style={"display": "none"}),
         html.Header(html.Div([
             html.A([html.Img(src=app.get_asset_url("mian-mark.svg"), alt="", className="brand-mark"), html.Div([html.Div("MIAN CAPITAL", className="brand"), html.Div("Faith, money, and a plan", className="brand-sub")])], href="/", className="brand-lockup", **{"aria-label": "Mian Capital, home"}),
-            html.Nav([html.A("Home", href="/"), html.A("Learn", href="/learn"), html.A("Paper Lab", href="/paper-lab"), html.A("Portfolio Screening", href="/portfolio"), html.A("About", href="/about"), html.A("Mian.io", href="/mianio", className="nav-cta")], className="top-nav", **{"aria-label": "Main navigation"}),
+            html.Nav([html.A("Home", href="/"), html.A("Learn", href="/learn"), html.A("Paper Lab", href="/paper-lab"), html.A("Portfolio Screening", href="/portfolio"), html.A("About", href="/about"), html.A("Stories", href="/stories"), html.A("Mian.io", href="/mianio", className="nav-cta")], className="top-nav", **{"aria-label": "Main navigation"}),
         ], className="topbar-inner"), className="topbar"),
         html.Main([
             html.Section([
@@ -176,6 +176,32 @@ app.layout = html.Div(
             ], className="account-section"),
             html.Section([html.Div("WRITE TO ME", className="eyebrow"), html.H2("Have a question about getting started?"), html.P("Tell me what you're trying to understand, whether that's opening an account or researching a fund. Please don't email account numbers, passwords, or other sensitive financial information."), html.A("wali.mian@yale.edu ↗", href="mailto:wali.mian@yale.edu", className="primary-cta")], className="about-close reveal"),
         ], id="about-page", className="page-content subpage-content", hidden=True),
+        html.Main([
+            html.Section([
+                html.Div([html.Div("TWO WAYS TO START", className="eyebrow"), html.H1(["Your first question ", html.Em("has a place here.")], className="subpage-title"), html.P("Here are two examples you can try with the tools on this site. They illustrate possible workflows; they are not customer testimonials or measured user outcomes.", className="subpage-lede")], className="stories-hero-copy reveal"),
+                html.Div([html.Span("01", className="stories-hero-number"), html.Span("A question is enough to begin.", className="stories-hero-line")], className="stories-hero-art reveal delay-1"),
+            ], className="stories-hero"),
+            html.Section([
+                html.Div([html.Div("ILLUSTRATIVE WALKTHROUGHS", className="eyebrow"), html.H2("See where a question can lead."), html.P("These examples use sample questions and holdings. They show what the app can do today, including where it needs more evidence.")], className="section-heading reveal"),
+                html.Div([
+                    html.Article([
+                        html.Div([html.Span("01 / PORTFOLIO SCREENING", className="story-kicker"), html.Img(src=app.get_asset_url("icon-values.svg"), alt="", className="story-icon")], className="story-card-top"),
+                        html.H3("Find the part that still needs checking."),
+                        html.P("Imagine holding $5,000 of HLAL, $3,000 of SPUS, and $2,000 of AMAGX. Enter those values in Portfolio Screening. The sample result places 80% of the value in funds with a checked issuer description of a Shariah-oriented strategy. The other 20% still needs source review."),
+                        html.P("Choose an extra concern, such as gambling or high debt, and the app adds a review flag. It cannot verify each current company holding or debt ratio, so it does not call the portfolio compliant."),
+                        html.A("Try the sample portfolio ↗", href="/portfolio", className="story-link"),
+                    ], className="story-card reveal delay-1"),
+                    html.Article([
+                        html.Div([html.Span("02 / MIAN.IO RESEARCH", className="story-kicker"), html.Img(src=app.get_asset_url("icon-research.svg"), alt="", className="story-icon")], className="story-card-top"),
+                        html.H3("A quick market check, in your own words."),
+                        html.P("Before the day gets busy, open Mian.io and tap the SPUS news question. You can ask a follow-up about its recent price and see a dated chart when price data is available. Source links let you check what the answer is based on."),
+                        html.P("This is an on-demand research conversation, not an automatic daily briefing. News coverage can be incomplete, and the tool does not recommend a trade."),
+                        html.A("Ask Mian.io ↗", href="/mianio", className="story-link"),
+                    ], className="story-card reveal delay-2"),
+                ], className="stories-grid"),
+            ], className="stories-section"),
+            html.Section([html.Div("TELL US WHAT YOU FOUND", className="eyebrow"), html.H2("Tried it yourself? I'd like to hear what worked."), html.P("Use the sample portfolio or bring a fund question. Tell me what you tried, what helped, and what was confusing. If you would like your words quoted publicly, please say so explicitly. Please do not send account numbers, passwords, or private holdings."), html.A("Write to Wali ↗", href="mailto:wali.mian@yale.edu?subject=Mian%20Capital%20feedback", className="primary-cta")], className="stories-feedback reveal"),
+        ], id="stories-page", className="page-content subpage-content", hidden=True),
         html.Main([
             html.Section([
                 html.Div([html.Div([html.Span(className="eyebrow-line"), "PAPER LAB"], className="eyebrow"), html.H1(["What might a small start ", html.Em("have become?")], className="subpage-title"), html.P("Try a paper-money purchase with real past prices, or choose an assumed growth rate to see how compounding works. Nothing here places a trade or predicts the future.", className="subpage-lede")], className="paper-hero-copy reveal"),
@@ -411,12 +437,13 @@ def complete_agent_turn(_, pending, history):
     Output("portfolio-page", "hidden"),
     Output("learn-page", "hidden"),
     Output("mianio-page", "hidden"),
+    Output("stories-page", "hidden"),
     Input("site-location", "pathname"),
 )
 def show_page(pathname):
-    pages = {"/": 0, "/about": 1, "/paper-lab": 2, "/portfolio": 3, "/learn": 4, "/mianio": 5}
+    pages = {"/": 0, "/about": 1, "/paper-lab": 2, "/portfolio": 3, "/learn": 4, "/mianio": 5, "/stories": 6}
     selected = pages.get(pathname or "/", 0)
-    return tuple(index != selected for index in range(6))
+    return tuple(index != selected for index in range(7))
 
 
 @app.callback(
