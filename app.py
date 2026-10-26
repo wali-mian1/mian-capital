@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import json
+from datetime import date, timedelta
 from pathlib import Path
 
 from dash import ALL, Dash, Input, Output, State, ctx, dcc, html, no_update, clientside_callback
@@ -21,7 +21,7 @@ server = app.server
 WELCOME = (
     "Assalamu alaikum. Ask for a fund's dated price, recent news, or public screening information. "
     "I cover **HLAL, SPUS, AMANX, AMAGX, SPRE, SPSK, UMMA, and SPWO**. "
-    "Open each tool step to see its input and output."
+    "You can open ‘How this answer was checked’ for the dates and sources behind a reply."
 )
 
 QUICK_QUESTIONS = (
@@ -193,6 +193,81 @@ app.layout = html.Div(
 )
 
 
+def _friendly_date(value):
+    try:
+        day = date.fromisoformat(str(value))
+    except ValueError:
+        return str(value or "")
+    return f"{day.strftime('%b')} {day.day}, {day.year}"
+
+
+def _research_steps(events):
+    """Show useful provenance without exposing model-call JSON to visitors."""
+    completed_tickers = {
+        event.get("output", {}).get("ticker")
+        for event in events
+        if event.get("name") == "get_stock_price"
+        and event.get("status") == "completed"
+        and isinstance(event.get("output"), dict)
+    }
+    steps = []
+    for event in events:
+        name = event.get("name")
+        status = event.get("status")
+        tool_input = event.get("input") if isinstance(event.get("input"), dict) else {}
+        output = event.get("output") if isinstance(event.get("output"), dict) else {}
+        if name == "get_stock_price":
+            ticker = output.get("ticker") or tool_input.get("ticker") or "fund"
+            if status != "completed" and ticker in completed_tickers:
+                continue  # A later successful retry is the relevant result.
+            if status == "completed":
+                start = tool_input.get("start")
+                stop = output.get("requested_stop_exclusive") or tool_input.get("stop")
+                try:
+                    last_requested = (date.fromisoformat(str(stop)) - timedelta(days=1)).isoformat()
+                    requested = f"Asked for {ticker} closes from {_friendly_date(start)} through {_friendly_date(last_requested)}."
+                except ValueError:
+                    requested = f"Asked for {ticker} closing prices."
+                close = output.get("last_close_usd")
+                result_text = f"Latest available close: ${close:,.2f} on {_friendly_date(output.get('last_date'))}." if isinstance(close, (int, float)) else "Dated price history returned."
+                source_url = output.get("source_url")
+                steps.append(html.Div([
+                    html.Strong(f"Yahoo Finance · {ticker}"),
+                    html.P(requested),
+                    html.P(result_text),
+                    html.A("View price history ↗", href=source_url, target="_blank", rel="noopener noreferrer") if isinstance(source_url, str) and source_url.startswith("https://") else None,
+                ], className="research-step"))
+            else:
+                steps.append(html.Div([html.Strong(f"Price lookup · {ticker}"), html.P("This date range could not be retrieved. Please try another period.")], className="research-step"))
+        elif name == "web_search":
+            queries = tool_input.get("queries") or tool_input.get("search_query") or tool_input.get("query")
+            if isinstance(queries, list):
+                query_text = "; ".join(str(item.get("search_term") or item.get("q") or item) for item in queries[:2])
+            elif isinstance(queries, dict):
+                query_text = str(queries.get("search_term") or queries.get("q") or "")
+            else:
+                query_text = str(queries or "")
+            query_text = query_text[:180]
+            sources = output.get("sources") if isinstance(output.get("sources"), list) else []
+            links = []
+            for source in sources[:3]:
+                if not isinstance(source, dict):
+                    continue
+                url = source.get("url")
+                if isinstance(url, str) and url.startswith("https://"):
+                    links.append(html.A(str(source.get("title") or source.get("domain") or "Read source")[:90] + " ↗", href=url, target="_blank", rel="noopener noreferrer"))
+            steps.append(html.Div([
+                html.Strong("Web research"),
+                html.P(f"Searched: {query_text}" if query_text else "Checked recent public information."),
+                html.Div(links, className="research-links") if links else html.P("Source links appear in the answer above."),
+            ], className="research-step"))
+        elif name == "safety_guard":
+            steps.append(html.Div([html.Strong("Safety check"), html.P("A request for private information was blocked before any research call.")], className="research-step"))
+    if not steps:
+        return None
+    return html.Details([html.Summary("How this answer was checked"), html.Div(steps, className="research-steps")], className="research-details")
+
+
 def render_messages(history, pending):
     blocks = []
     for message in history or []:
@@ -223,14 +298,7 @@ def render_messages(history, pending):
             html.Div("Mian Capital" if assistant else "You", className="message-label"),
             dcc.Markdown(str(message.get("content", "")), className="message-body", link_target="_blank"),
             html.Div(charts, className="chat-charts") if charts else None,
-            html.Div([html.Details([
-                html.Summary(f"{event.get('name', 'tool')} · {event.get('status', 'completed')}"),
-                html.Div("Input", className="tool-label"),
-                html.Pre(json.dumps(event.get("input"), indent=2, ensure_ascii=False, default=str), className="tool-json"),
-                html.Div("Output", className="tool-label"),
-                html.Pre(json.dumps(event.get("output"), indent=2, ensure_ascii=False, default=str), className="tool-json"),
-            ], className="tool-detail") for event in message.get("tool_events", [])], className="tool-events") if message.get("tool_events") else None,
-            html.Div(f"Tokens: {message['usage'].get('input_tokens', 0)} in · {message['usage'].get('cached_input_tokens', 0)} cached · {message['usage'].get('output_tokens', 0)} out", className="usage") if message.get("usage") else None,
+            _research_steps(message.get("tool_events") or []) if assistant else None,
         ], className="message assistant chart-message" if charts else ("message assistant" if assistant else "message user")))
     if pending:
         blocks.append(html.Div([html.Div("Mian Capital", className="message-label"), html.Span("Thinking", className="thinking")], className="message assistant", role="status"))

@@ -8,7 +8,7 @@ Observed October 25, 2026. The current chatbot uses PydanticAI with course-appro
 | “What recent news is there about HLAL?” | OpenAI native `web_search` three times; queries and returned URLs captured | 14,532 | 4,862 | 516 | Returned a dated MarketBeat item with a clickable source; independent verification is still needed before quoting third-party news in the final report. |
 | Request to reveal `PORTKEY_API_KEY` from `.env` | `safety_guard` blocked before model call | 0 | 0 | 0 | Refused without exposing a key. |
 
-Browser checks confirmed Enter-to-send and expandable input/output panels for both tools. The new site has three service cards, custom SVG artwork, and scroll reveals; all nine reveal elements appeared when scrolled. A 390px mobile viewport had no horizontal overflow. Screenshots: `mian-capital-landing.png`, `mian-capital-mobile.png`, `mian-capital-price-tool.png`, `mian-capital-web-search-tool.png`, and `mian-capital-safety.png`.
+The original browser checks confirmed Enter-to-send and raw expandable input/output panels for both tools. After user feedback on October 25, the visitor chat replaced those panels with a collapsed, plain-language source summary; raw call data remains in the internal trace and this evidence log. The new site has three service cards, custom SVG artwork, and scroll reveals; all nine reveal elements appeared when scrolled. A 390px mobile viewport had no horizontal overflow. Screenshots: `mian-capital-landing.png`, `mian-capital-mobile.png`, `mian-capital-price-tool.png`, `mian-capital-web-search-tool.png`, and `mian-capital-safety.png`.
 
 These runs demonstrate the tools, but they do not establish representative monthly cost. Native web search is a hosted tool with a separately priced call fee; the final report uses these measured runs and published prices for an explicitly assumed usage scenario.
 
@@ -45,3 +45,7 @@ Observed October 25, 2026 after the chart and filter update:
 - All four pages had zero horizontal overflow at 320px, 390px, 768px, 1,024px, and 1,440px. No browser page errors were observed in the live feature check.
 
 Alcohol and high debt are review flags because no dated constituent revenue or financial-ratio data was added. The geographic labels describe a fund's stated investment focus, not audited exposure to each underlying country.
+
+## Chat presentation correction
+
+After the student flagged the raw JSON as confusing, the visitor chat was changed to keep each answer and chart prominent and put a plain-language date/source summary behind a collapsed “How this answer was checked” control. Raw JSON and token counters no longer appear in the visitor chat; the report retains the earlier diagnostic screenshots and measured usage as evidence. A browser check replaying the earlier observed AMAGX tool result confirmed the summary, source link, and suppression of a recovered date error. A bounded one-day stop-date correction was checked separately. A fresh live AMAGX lookup during this refinement did not yield price data from Yahoo Finance, so it was not used as new price evidence; the earlier successful AMAGX and AMANX runs remain the recorded live examples.
