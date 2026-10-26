@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 
 from agent import run_agent
 from charts import paper_figure, price_figure
-from paper_trader import PaperTradeError, simulate_future, simulate_historical
+from paper_trader import PaperTradeError, average_annual_return, simulate_future, simulate_historical
 from holdings_screen import screen_portfolio
 from portfolio_alignment import PortfolioInputError, analyze_portfolio
 
@@ -34,13 +34,13 @@ QUICK_QUESTIONS = (
 )
 
 
-def feature_card(number: str, icon: str, title: str, copy: str, foot: str, delay: str) -> html.Article:
+def feature_card(number: str, icon: str, title: str, copy: str, foot: str, href: str, delay: str) -> html.Article:
     return html.Article(
         [
             html.Div([html.Img(src=app.get_asset_url(icon), alt="", className="feature-icon"), html.Span(number, className="feature-number")], className="feature-top"),
             html.H3(title),
             html.P(copy),
-            html.Div(foot, className="feature-foot"),
+            html.A([foot, html.Span(" →", **{"aria-hidden": "true"})], href=href, className="feature-foot"),
         ],
         className=f"feature-card reveal {delay}",
     )
@@ -61,7 +61,7 @@ app.layout = html.Div(
         dcc.Interval(id="agent-poll", interval=250, n_intervals=0, max_intervals=0, disabled=True),
         html.Div(id="scroll-signal", style={"display": "none"}),
         html.Header(html.Div([
-            html.A([html.Img(src=app.get_asset_url("mian-mark.svg"), alt="", className="brand-mark"), html.Div([html.Div("MIAN CAPITAL", className="brand"), html.Div("Faith, money, and a plan", className="brand-sub")])], href="/", className="brand-lockup", **{"aria-label": "Mian Capital, home"}),
+            html.A([html.Img(src=app.get_asset_url("mian-mark.svg"), alt="", className="brand-mark"), html.Div([html.Div("MIAN CAPITAL", className="brand"), html.Div("Values, money, and a plan", className="brand-sub")])], href="/", className="brand-lockup", **{"aria-label": "Mian Capital, home"}),
             html.Nav([html.A("Home", href="/"), html.A("Learn", href="/learn"), html.A("Paper Lab", href="/paper-lab"), html.A("Portfolio Screening", href="/portfolio"), html.A("About", href="/about"), html.A("Testimonials", href="/testimonials"), html.A("Mian.io", href="/mianio", className="nav-cta")], className="top-nav", **{"aria-label": "Main navigation"}),
         ], className="topbar-inner"), className="topbar"),
         html.Main([
@@ -69,7 +69,7 @@ app.layout = html.Div(
                 html.Div([
                     html.Div([html.Span(className="eyebrow-line"), "FOR PEOPLE READY TO BEGIN"], className="eyebrow"),
                     html.H1(["Cash in a checking account can lose value to ", html.Em("inflation.")], className="hero-title"),
-                    html.P("A dollar today may buy less tomorrow when prices rise faster than the interest it earns. If investing feels unfamiliar, we'll help you learn the accounts and look at funds through an Islamic lens before you take the next step.", className="hero-copy"),
+                    html.P("A dollar today may buy less tomorrow when prices rise faster than the interest it earns. If investing feels unfamiliar, we'll help you learn the accounts and look at funds through the lens of your faith and values before you take the next step.", className="hero-copy"),
                     html.Div([html.A(["Start with the basics", html.Span("↗", **{"aria-hidden": "true"})], href="/learn", className="primary-cta"), html.A("Try Mian.io", href="/mianio", className="text-cta")], className="hero-actions"),
                 ], className="hero-content reveal"),
                 html.Div([
@@ -78,31 +78,33 @@ app.layout = html.Div(
                 ], className="hero-art reveal delay-1"),
             ], id="top", className="hero-section"),
             html.Section([
-                html.Div([html.Div("WHY STARTING EARLIER MATTERS", className="eyebrow"), html.H2("Give time a chance to work for you."), html.P("You don't have to guess the perfect day to get started. Put aside $100 a month for 20 years and you contribute $24,000. At an assumed 6% annual return, monthly compounding would bring that to about $46,200. This is an illustration; actual investments can lose value.")], className="time-copy"),
+                html.Div([html.Div("WHY STARTING EARLIER MATTERS", className="eyebrow"), html.H2("Give time a chance to work for you."), html.P("You don't have to guess the perfect day to get started. Put aside $100 a month for 20 years and you contribute $24,000. At an assumed 6% annual return, compounded monthly, that would grow to about $46,200."), html.P("Illustration only. Actual investments can lose value.", className="fine-print fine-print-dark")], className="time-copy"),
                 html.Div([html.Div([html.Span("YOUR CONTRIBUTIONS"), html.Strong("$24,000")], className="time-metric"), html.Div([html.Span("ILLUSTRATIVE END VALUE"), html.Strong("$46,200")], className="time-metric time-metric-highlight"), html.A("Try your own numbers in Paper Lab ↗", href="/paper-lab", className="time-link")], className="time-metrics"),
             ], className="time-section reveal"),
             html.Section([
-                html.Div([html.Div("WHAT WE CAN HELP WITH", className="eyebrow"), html.H2("Start with the question you actually have."), html.P("Which account should I open? What does this fund own? Does its screening match my faith? Mian Capital gives you a place to work through those questions without pretending every answer is simple.")], className="section-heading reveal"),
+                html.Div([html.Div("WHAT WE CAN HELP WITH", className="eyebrow"), html.H2("Start with the question you actually have."), html.P("Which account should I open? What does this fund actually own? Does it match my faith or values? Mian Capital gives you three tools to work through those questions, without pretending every answer is simple.")], className="section-heading reveal"),
                 html.Div([
-                    feature_card("01", "icon-values.svg", "Invest without ignoring your faith", "For Muslims who avoid alcohol, gambling, and other restricted activities, a fund label is only a starting point. We show what the issuer says and where a closer look is still needed.", "FAITH AND EVIDENCE", "delay-1"),
-                    feature_card("02", "icon-research.svg", "Get the numbers in context", "Look up a dated price or recent news, then follow the source. Our portfolio screen looks inside your funds and checks each company they hold.", "DATED RESEARCH", "delay-2"),
-                    feature_card("03", "icon-journey.svg", "Take the first practical step", "Learn what the accounts do, try a paper-money example, and bring better questions to an advisor or scholar before making a real decision.", "START WHERE YOU ARE", "delay-3"),
+                    feature_card("01", "icon-values.svg", "Invest in line with your values", "Whether your faith or your own principles rule out alcohol, gambling, tobacco, weapons, fossil fuels, or heavy debt, Portfolio Screening opens each fund you own, checks its top holdings against all six, and shows your exposure in dollars.", "Screen a portfolio", "/portfolio", "delay-1"),
+                    feature_card("02", "icon-research.svg", "Research a fund in plain English", "Ask Mian.io for a fund's latest close, a one-month chart, recent news, or a side-by-side comparison such as SPUS vs. SPY. Every answer is dated and links to its source.", "Ask Mian.io", "/mianio", "delay-2"),
+                    feature_card("03", "icon-journey.svg", "Learn, then practice with paper money", "Learn how brokerage accounts, 401(k)s, and IRAs work. Then use Paper Lab to replay a past purchase or project a fund's growth at its historical average return before you risk a real dollar.", "Open Paper Lab", "/paper-lab", "delay-3"),
                 ], className="feature-grid"),
             ], id="approach", className="approach-section"),
             html.Section([
-                html.Div([html.Div("MIAN.IO · FREE TO USE", className="eyebrow"), html.H2("Fund research that feels like a conversation."), html.P("Ask Mian.io about a fund in your own words. It can find a dated price, chart, recent news, and public screening sources. Follow-up questions use this browser session's conversation."), html.A("Open Mian.io ↗", href="/mianio", className="primary-cta")], className="mianio-intro reveal"),
+                html.Div([html.Div("MIAN.IO · OUR PROPRIETARY AI RESEARCH ASSISTANT", className="eyebrow"), html.H2("Meet Mian.io: fund research at the speed of a conversation."), html.P("Mian.io is our proprietary research assistant. It pairs advanced AI models with live market data and real-time web search, so you can ask about a fund in your own words and get an answer in seconds: the latest close, a dated price chart, recent news, or a side-by-side comparison of two funds. Every answer shows its sources, and follow-up questions pick up where you left off."), html.Div([html.Div([html.Strong("Live prices"), html.Span("Dated closes and charts from Yahoo Finance")], className="mianio-pill"), html.Div([html.Strong("Real-time search"), html.Span("Recent news with clickable sources")], className="mianio-pill"), html.Div([html.Strong("Side by side"), html.Span("Compare two funds in one question")], className="mianio-pill")], className="mianio-pills"), html.A("Open Mian.io ↗", href="/mianio", className="primary-cta"), html.P("Free to use. Research only; not personal investment advice.", className="fine-print")], className="mianio-intro reveal"),
             ], className="research-section"),
         ], id="home-page", className="page-content"),
         html.Main([
             html.Section([
-                html.Div([html.Div("MONEY BASICS", className="eyebrow"), html.H2("First, know the account. Then choose what goes inside."), html.P("A brokerage or retirement account is a container. Stocks, ETFs, and mutual funds are investments you might put in it. Knowing the difference makes the next step much less intimidating.")], className="section-heading reveal"),
+                html.Div([html.Div("MONEY BASICS", className="eyebrow"), html.H2("First, know the account. Then, choose what goes inside."), html.P("A brokerage or retirement account is a container. Stocks, ETFs, and mutual funds are investments you might put in it. Knowing the difference makes the next step much less intimidating.")], className="section-heading reveal"),
                 html.Div([
                     html.Article([html.Span("01 / EVERYDAY INVESTING", className="learn-kicker"), html.H3("Brokerage account"), html.P("An account at a firm such as Fidelity, Schwab, or Vanguard where you can buy investments. A regular taxable account has no special retirement tax break."), html.A("Investor.gov account basics ↗", href="https://www.investor.gov/introduction-investing/investing-basics/investment-accounts/brokerage-accounts", target="_blank", rel="noopener noreferrer")], className="learn-card reveal delay-1"),
                     html.Article([html.Span("02 / THROUGH WORK", className="learn-kicker"), html.H3("401(k) plan"), html.P("A retirement account offered by an employer. Money can come from your paycheck, and some employers add a match. Traditional and Roth tax options may be available."), html.A("IRS 401(k) overview ↗", href="https://www.irs.gov/retirement-plans/plan-sponsor/401k-plan-overview", target="_blank", rel="noopener noreferrer")], className="learn-card reveal delay-2"),
                     html.Article([html.Span("03 / ON YOUR OWN", className="learn-kicker"), html.H3("Traditional IRA"), html.P("An individual retirement account. Contributions may be deductible depending on your situation; withdrawals are generally taxable. Annual rules and limits apply."), html.A("IRS IRA basics ↗", href="https://www.irs.gov/retirement-plans/traditional-and-roth-iras", target="_blank", rel="noopener noreferrer")], className="learn-card reveal delay-1"),
                     html.Article([html.Span("04 / ON YOUR OWN", className="learn-kicker"), html.H3("Roth IRA"), html.P("You contribute money after tax. Qualified withdrawals can be tax-free later. Income eligibility and contribution rules apply; a Roth 401(k) is a separate workplace option."), html.A("IRS Roth IRA basics ↗", href="https://www.irs.gov/retirement-plans/traditional-and-roth-iras", target="_blank", rel="noopener noreferrer")], className="learn-card reveal delay-2"),
+                    html.Article([html.Span("05 / TAX BASICS", className="learn-kicker"), html.H3("Pre-tax contributions"), html.P("Money goes in before income tax is taken out, as with a traditional 401(k) or a deductible Traditional IRA. It lowers your taxable income today, and you pay income tax when you withdraw the money in retirement."), html.A("IRS Roth vs. traditional chart ↗", href="https://www.irs.gov/retirement-plans/roth-comparison-chart", target="_blank", rel="noopener noreferrer")], className="learn-card reveal delay-1"),
+                    html.Article([html.Span("06 / TAX BASICS", className="learn-kicker"), html.H3("Post-tax contributions"), html.P("Money goes in after income tax has been paid, as with a Roth IRA or Roth 401(k). There is no tax break today, but qualified withdrawals, including the growth, can be tax-free later."), html.A("IRS Roth vs. traditional chart ↗", href="https://www.irs.gov/retirement-plans/roth-comparison-chart", target="_blank", rel="noopener noreferrer")], className="learn-card reveal delay-2"),
                 ], className="learn-grid"),
-                html.Div([html.Strong("What goes inside?"), html.Span("A stock is a share of one company. An ETF or mutual fund holds a basket of investments; ETFs trade during the day, while mutual funds usually price once daily. The account type does not make its holdings Shariah-compliant—check the investments themselves."), html.A("See investment product basics ↗", href="https://www.investor.gov/introduction-investing/investing-basics/investment-products", target="_blank", rel="noopener noreferrer")], className="learn-footnote reveal"),
+                html.Div([html.Strong("What goes inside?"), html.Span("A stock is a share of one company. An ETF or mutual fund holds a basket of investments; ETFs trade during the day, while mutual funds usually price once daily. An account type doesn't make its holdings fit your values, so check the investments themselves."), html.A("See investment product basics ↗", href="https://www.investor.gov/introduction-investing/investing-basics/investment-products", target="_blank", rel="noopener noreferrer")], className="learn-footnote reveal"),
             ], id="learn", className="learn-section"),
         ], id="learn-page", className="page-content subpage-content", hidden=True),
         html.Main([
@@ -110,13 +112,13 @@ app.layout = html.Div(
                 html.Div([
                     html.Div("MIAN.IO · FREE TO USE", className="eyebrow"),
                     html.H2("Fund research that feels like a conversation."),
-                    html.P("Mian.io is our own free research tool, built for Mian Capital. Ask in your own words, then ask a follow-up: it uses the earlier questions in this browser session to keep the conversation moving. You can try it without an account or a fee."),
+                    html.P("Mian.io is our proprietary AI research assistant. It pairs advanced AI models with live market data and real-time web search. Ask in your own words, then ask a follow-up; it remembers the earlier questions in this browser session. No account or fee is needed."),
                     html.Div([
                         html.Div([html.Strong("Say the fund name"), html.Span("Ask about Amana Growth Fund and Mian.io looks up AMAGX, the ticker the price source needs.")], className="mianio-benefit"),
                         html.Div([html.Strong("See a dated chart"), html.Span("Get the latest available close, a price history chart, and the source behind the numbers.")], className="mianio-benefit"),
                         html.Div([html.Strong("Know what needs checking"), html.Span("Read public screening sources and see when a fund's current holdings still need review.")], className="mianio-benefit"),
                     ], className="mianio-benefits"),
-                    html.P("We built it to make the first research step quicker and easier to verify. It does not certify Shariah compliance or make trades for you.", className="mianio-boundary"),
+                    html.P("Built to make the first research step quicker and easier to verify. It does not certify Shariah compliance or make trades for you.", className="fine-print"),
                 ], className="mianio-intro reveal"),
                 html.Div([
                 html.Section([
@@ -153,7 +155,7 @@ app.layout = html.Div(
                     html.Div([html.Span(className="eyebrow-line"), "MEET WALI MIAN"], className="eyebrow"),
                     html.H1(["The first step ", html.Em("can be the hardest.")], className="subpage-title"),
                     html.Div("ABOUT YOUR ADVISOR", className="eyebrow about-bio-label"),
-                    html.P("I’m Wali Mian, an MBA student at Yale School of Management. I studied mathematics and actuarial science at UT Austin and spent four years as an actuary working with retirement benefits, including 401(k), defined benefit, defined contribution, and pension plans. I started Mian Capital to help people in my community begin investing with more confidence while honoring their Islamic values.", className="subpage-lede about-bio-copy"),
+                    html.P("I’m Wali Mian, an MBA student at Yale School of Management. I studied mathematics and actuarial science at UT Austin and spent four years as an actuary working with retirement benefits, including 401(k), defined benefit, defined contribution, and pension plans. I started Mian Capital to help people begin investing with more confidence while honoring their values, whether those come from Islam, another faith, or their own convictions.", className="subpage-lede about-bio-copy"),
                     html.A("Explore Mian.io ↗", href="/mianio", className="primary-cta"),
                 ], className="about-hero-copy reveal"),
                 html.Div([
@@ -165,15 +167,15 @@ app.layout = html.Div(
             html.Section([
                 html.Div([
                     html.Div("STARTING IS OFTEN THE HARDEST PART", className="eyebrow"),
-                    html.H2("A bigger paycheck can come with bigger questions."),
-                    html.P("Many new physicians spend years learning their profession, then suddenly have to figure out a brokerage account, retirement plan, and first investment. I can walk you through the setup and the questions worth asking before you put money to work.", className="service-lede"),
+                    html.H2("Every paycheck comes with questions."),
+                    html.P("Maybe you're a new physician whose income just jumped after years of training. Maybe you're early in your career and want to make a modest paycheck go further. Either way, figuring out a brokerage account, a retirement plan, and a first investment can feel like a lot. I can walk you through the setup and the questions worth asking before you put money to work.", className="service-lede"),
                 ], className="service-heading reveal"),
                 html.Div([
                     html.Article([html.Div("01", className="service-step-number"), html.H3("Choose a place to begin"), html.P("Understand the basics of opening a brokerage account at firms such as Vanguard, Fidelity, or Charles Schwab, and what to look for in an account.")], className="service-step reveal delay-1"),
                     html.Article([html.Div("02", className="service-step-number"), html.H3("Set it up securely"), html.P("Walk through the account-opening and funding process. You keep control of your credentials, personal information, and account access.")], className="service-step reveal delay-2"),
                     html.Article([html.Div("03", className="service-step-number"), html.H3("Learn the mechanics"), html.P("Understand tickers, order types, and the steps involved in placing your own first trade before making any real decision.")], className="service-step reveal delay-3"),
                 ], className="service-grid"),
-                html.P("Mian Capital’s current site offers education and setup guidance. It does not place trades or take control of client accounts through this website.", className="service-boundary"),
+                html.P("Mian Capital offers education and setup guidance. This website does not place trades or take control of client accounts.", className="fine-print"),
             ], className="account-section"),
             html.Section([html.Div("WRITE TO ME", className="eyebrow"), html.H2("Have a question about getting started?"), html.P("Tell me what you're trying to understand, whether that's opening an account or researching a fund. Please don't email account numbers, passwords, or other sensitive financial information."), html.A("wali.mian@yale.edu ↗", href="mailto:wali.mian@yale.edu", className="primary-cta")], className="about-close reveal"),
         ], id="about-page", className="page-content subpage-content", hidden=True),
@@ -186,14 +188,12 @@ app.layout = html.Div(
                 html.Div("FUND COMPARISON", className="eyebrow"),
                 html.H2("Two funds, side by side, in about 20 seconds."),
                 html.P("One of our users tapped the SPUS vs SPY question in Mian.io and had both funds' prices and charts side by side in about 20 seconds. They told us the same check on the open web would have taken closer to a minute, with two separate tabs. They then asked Mian.io for insights on the two funds and got an objective comparison of the tickers, which they found very useful."),
-                html.Div([html.Span("SPUS vs SPY"), html.Span("Side-by-side charts"), html.Span("Follow-up insights")], className="tester-tags"),
                 html.P("Shared with permission. Timings are the user's own estimate; this is not a recommendation of either fund.", className="testimonial-source"),
             ], className="testimonial-feature reveal"),
             html.Section([
                 html.Div("PAPER LAB", className="eyebrow"),
                 html.H2("Revisiting a trade before making it."),
                 html.P("A user compared HLAL and SPUS prices, then used Paper Lab to replay a trade they had considered about a month earlier but never placed. Seeing the scenario helped them feel more confident about the decision they were weighing, and they reached out to us for help opening a brokerage account."),
-                html.Div([html.Span("HLAL + SPUS research"), html.Span("Paper Lab scenario"), html.Span("Account setup help")], className="tester-tags"),
                 html.P("Shared with permission. No trade or investment result is implied.", className="testimonial-source"),
             ], className="testimonial-feature reveal"),
             html.Section([
@@ -219,19 +219,19 @@ app.layout = html.Div(
         ], id="stories-page", className="page-content subpage-content", hidden=True),
         html.Main([
             html.Section([
-                html.Div([html.Div([html.Span(className="eyebrow-line"), "PAPER LAB"], className="eyebrow"), html.H1(["What might a small start ", html.Em("have become?")], className="subpage-title"), html.P("Try a paper-money purchase with real past prices, or choose an assumed growth rate to see how compounding works. Nothing here places a trade or predicts the future.", className="subpage-lede")], className="paper-hero-copy reveal"),
+                html.Div([html.Div([html.Span(className="eyebrow-line"), "PAPER LAB"], className="eyebrow"), html.H1(["What might a small start ", html.Em("have become?")], className="subpage-title"), html.P("Replay a paper-money purchase with real past prices, or project growth at a fund's historical average return to see how compounding works. Nothing here places a trade or predicts the future.", className="subpage-lede")], className="paper-hero-copy reveal"),
                 html.Div([html.Div("$", className="paper-coin"), html.Div("TRY IT WITHOUT RISKING A DOLLAR", className="paper-coin-label")], className="paper-hero-art reveal delay-1"),
             ], className="paper-hero"),
             html.Section([
-                html.Div([html.Div("BUILD A SCENARIO", className="eyebrow"), html.H2("Put paper money to work."), html.P("Choose a ticker and an amount. Historical mode uses dated Yahoo prices; future mode compounds a rate that you choose.")], className="section-heading reveal"),
+                html.Div([html.Div("BUILD A SCENARIO", className="eyebrow"), html.H2("Put paper money to work."), html.P("Choose a ticker and an amount. Look back uses dated Yahoo prices. Look ahead starts from the fund's historical average return, which you can change.")], className="section-heading reveal"),
                 html.Div([
                     html.Div([
                         html.Div("1. Choose a view", className="form-kicker"),
                         dcc.RadioItems(id="paper-mode", options=[{"label": "Look back", "value": "historical"}, {"label": "Look ahead", "value": "future"}], value="historical", className="mode-options"),
-                        html.Div([html.Label("Ticker symbol", htmlFor="paper-ticker"), dcc.Input(id="paper-ticker", type="text", value="HLAL", placeholder="HLAL or another USD ticker", className="paper-input"), html.Small("This paper lab can test USD-listed stocks or funds. It does not place a trade.")], className="field"),
+                        html.Div([html.Label("Ticker symbol", htmlFor="paper-ticker"), dcc.Input(id="paper-ticker", type="text", value="HLAL", debounce=True, placeholder="HLAL or another USD ticker", className="paper-input"), html.Small("Paper Lab works with USD-listed stocks and funds. It does not place a trade.")], className="field"),
                         html.Div([html.Label("Paper-money amount (USD)", htmlFor="paper-amount"), dcc.Input(id="paper-amount", type="number", value=10000, min=100, max=1000000, step=100, className="paper-input")], className="field"),
                         html.Div([html.Label("Hypothetical purchase date"), dcc.DatePickerSingle(id="paper-date", date="2021-10-25", display_format="MMM D, YYYY", className="paper-date")], id="historical-controls", className="field"),
-                        html.Div([html.Div([html.Label("Years from today", htmlFor="paper-years"), dcc.Input(id="paper-years", type="number", value=10, min=1, max=30, step=1, className="paper-input")], className="field"), html.Div([html.Label("Assumed annual return (%)", htmlFor="paper-rate"), dcc.Input(id="paper-rate", type="number", value=6, min=-30, max=30, step=0.5, className="paper-input")], className="field"), html.Small("This rate is your assumption, not a forecast for the ticker.")], id="future-controls", className="future-fields", style={"display": "none"}),
+                        html.Div([html.Div([html.Label("Years from today", htmlFor="paper-years"), dcc.Input(id="paper-years", type="number", value=10, min=1, max=30, step=1, className="paper-input")], className="field"), html.Div([html.Label("Annual return (%)", htmlFor="paper-rate"), dcc.Input(id="paper-rate", type="number", value=6, min=-30, max=30, step=0.1, className="paper-input")], className="field"), html.Div(id="fund-average", className="fund-average"), html.Small("We fill in the fund's historical average. Change it to test your own assumption; past returns don't predict future ones.")], id="future-controls", className="future-fields", style={"display": "none"}),
                         html.Button("Run paper scenario", id="paper-run", n_clicks=0, className="paper-run"),
                         html.P("Historical returns can be negative. A checking-account comparison assumes 0% interest and does not include inflation.", className="paper-form-note"),
                     ], className="paper-form reveal delay-1"),
@@ -244,7 +244,7 @@ app.layout = html.Div(
         ], id="paper-page", className="page-content subpage-content", hidden=True),
         html.Main([
             html.Section([
-                html.Div([html.Div([html.Span(className="eyebrow-line"), "PORTFOLIO SCREENING"], className="eyebrow"), html.H1(["See what your funds ", html.Em("actually own.")], className="subpage-title"), html.P("Enter your funds or stocks. We open each fund, list the companies it holds, and check every company against six common Shariah screens: alcohol, gambling, tobacco, weapons, fossil fuels, and high debt.", className="subpage-lede")], className="reveal"),
+                html.Div([html.Div([html.Span(className="eyebrow-line"), "PORTFOLIO SCREENING"], className="eyebrow"), html.H1(["See what your funds ", html.Em("actually own.")], className="subpage-title"), html.P("Enter your funds or stocks. We open each fund, list the companies it holds, and check every company against six common faith- and values-based screens: alcohol, gambling, tobacco, weapons, fossil fuels, and high debt.", className="subpage-lede")], className="reveal"),
             ], className="portfolio-hero"),
             html.Section([
                 html.Div([
@@ -261,16 +261,16 @@ app.layout = html.Div(
                         html.Div([
                             html.Div([html.Strong("Look inside each fund"), html.Span("We pull the fund's ten largest holdings from Yahoo Finance and show how much of your money sits in each company.")], className="screen-step"),
                             html.Div([html.Strong("Screen each company's business"), html.Span("A Mian Capital AI agent reads each company's industry and business description and marks alcohol, gambling, tobacco, weapons, and fossil fuels as clear, flagged, or unclear.")], className="screen-step"),
-                            html.Div([html.Strong("Measure debt"), html.Span("Total debt divided by market value. Above 30% is flagged, a common Shariah-screen limit (AAOIFI style).")], className="screen-step"),
+                            html.Div([html.Strong("Measure debt"), html.Span("Total debt divided by market value. Above 30% is flagged, a common limit in Shariah screens such as AAOIFI's.")], className="screen-step"),
                             html.Div([html.Strong("Add it up"), html.Span("Flagged companies are converted to dollars of your portfolio, so you see how much is actually exposed.")], className="screen-step"),
                         ], className="screen-steps"),
                     ], className="paper-output reveal delay-2"),
                 ], className="paper-workspace"),
                 dcc.Loading(html.Div(id="portfolio-result"), type="dot", color="#173e32"),
             ], className="paper-work-section"),
-            html.P("This screen covers each fund's ten largest holdings, not every company it owns, and uses one common debt limit. It is research, not a religious ruling. Consult a qualified scholar and financial professional for decisions.", className="paper-disclaimer"),
+            html.P("This screen covers each fund's ten largest holdings, not every company it owns, and uses one common debt limit. It is research, not a religious ruling. Consult a qualified scholar or financial professional before making decisions.", className="paper-disclaimer"),
         ], id="portfolio-page", className="page-content subpage-content", hidden=True),
-        html.Footer(html.Div([html.Div([html.Img(src=app.get_asset_url("mian-mark.svg"), alt="", className="footer-mark"), html.Div([html.Strong("MIAN CAPITAL"), html.Span("Faith, money, and a plan.")], className="footer-brand")]), html.Div("Research to support a thoughtful conversation. Fund information is not a religious ruling or personal investment advice.", className="footer-note")], className="footer-inner"), className="footer"),
+        html.Footer(html.Div([html.Div([html.Img(src=app.get_asset_url("mian-mark.svg"), alt="", className="footer-mark"), html.Div([html.Strong("MIAN CAPITAL"), html.Span("Values, money, and a plan.")], className="footer-brand")]), html.Div("Research to support a thoughtful conversation. Fund information is not a religious ruling or personal investment advice.", className="footer-note")], className="footer-inner"), className="footer"),
     ], className="app-shell",
 )
 
@@ -478,6 +478,22 @@ def show_page(pathname):
 )
 def show_paper_fields(mode):
     return ({"display": "none"}, {}) if mode == "future" else ({}, {"display": "none"})
+
+
+@app.callback(Output("fund-average", "children"), Output("paper-rate", "value"), Input("paper-ticker", "value"), Input("paper-mode", "value"))
+def show_fund_average(ticker, mode):
+    if mode != "future" or not str(ticker or "").strip():
+        return no_update, no_update
+    try:
+        result = average_annual_return(ticker)
+    except PaperTradeError as exc:
+        return html.Span(str(exc), className="fund-average-missing"), no_update
+    rate = max(-30.0, min(30.0, result["average_annual_return_pct"]))
+    return html.Div([
+        html.Strong(f"{result['ticker']} has averaged {result['average_annual_return_pct']:.1f}% a year"),
+        html.Span(f" over the last {result['years']:g} years ({result['start'][:4]}–{result['end'][:4]}, with distributions reinvested). "),
+        html.A("Source ↗", href=result["source_url"], target="_blank", rel="noopener noreferrer"),
+    ]), rate
 
 
 def _money(amount: float) -> str:

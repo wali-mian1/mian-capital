@@ -82,6 +82,8 @@ def simulate_historical(ticker: str, amount: float, purchase_date: str) -> dict:
     raw = frame["Close"].dropna()
     adjusted = frame["Adj Close"].dropna() if "Adj Close" in frame else raw
     common = raw.index.intersection(adjusted.index)
+    if len(common) > 1 and common[-1].date() == today and datetime.now(_NY).hour < 16:
+        common = common[:-1]  # today's row is a live price until the 4 p.m. close
     raw = raw.loc[common]
     adjusted = adjusted.loc[common]
     if len(common) < 1:
@@ -140,6 +142,9 @@ def simulate_future(ticker: str, amount: float, years: int, assumed_annual_retur
     today = datetime.now(_NY).date()
     frame, currency = _history(symbol, today - timedelta(days=21), today + timedelta(days=1))
     raw = frame["Close"].dropna()
+    # Before the 4 p.m. New York close, Yahoo's row for today is a live price, not a close.
+    if len(raw) > 1 and raw.index[-1].date() == today and datetime.now(_NY).hour < 16:
+        raw = raw.iloc[:-1]
     if raw.empty or not math.isfinite(float(raw.iloc[-1])) or float(raw.iloc[-1]) <= 0:
         raise PaperTradeError("The latest price is unavailable for this ticker.")
     latest_close = float(raw.iloc[-1])
@@ -161,4 +166,29 @@ def simulate_future(ticker: str, amount: float, years: int, assumed_annual_retur
         "series": series,
         "source_url": f"https://finance.yahoo.com/quote/{symbol}/history/",
         "method": "Illustration of compound growth using the rate you selected. This is not a forecast for the ticker. Cash line assumes 0% interest. No contributions, fees, taxes, or inflation; no real trades.",
+    }
+
+
+def average_annual_return(ticker: str, max_years: int = 10) -> dict:
+    """Annualized total return from Yahoo adjusted closes over up to `max_years` (or since listing)."""
+    symbol = _ticker(ticker)
+    today = datetime.now(_NY).date()
+    frame, _ = _history(symbol, today - timedelta(days=round(365.25 * max_years) + 7), today + timedelta(days=1))
+    adjusted = frame["Adj Close"] if "Adj Close" in frame else frame["Close"]
+    series = adjusted.dropna()
+    series = series[series > 0]
+    if len(series) < 2:
+        raise PaperTradeError("Not enough price history to calculate an average return.")
+    first_day, last_day = series.index[0].date(), series.index[-1].date()
+    years = (last_day - first_day).days / 365.25
+    if years < 1:
+        raise PaperTradeError("This ticker has less than a year of price history.")
+    rate = (float(series.iloc[-1]) / float(series.iloc[0])) ** (1 / years) - 1
+    return {
+        "ticker": symbol,
+        "average_annual_return_pct": round(rate * 100, 2),
+        "years": round(years, 1),
+        "start": first_day.isoformat(),
+        "end": last_day.isoformat(),
+        "source_url": f"https://finance.yahoo.com/quote/{symbol}/history/",
     }

@@ -356,3 +356,51 @@ a { color:inherit; }
 .flag-row { background:#fffaf0; }
 @media (max-width:900px) { .screen-tiles { grid-template-columns:1fr 1fr; } .screen-results { padding:20px; } }
 @media (max-width:560px) { .screen-tiles { grid-template-columns:1fr; } .position-block summary { flex-wrap:wrap; } }
+
+/* ---- Oct 26 polish: brand, nav, color, fine print ---- */
+:root { --teal:#2d6f6a; --sage:#e7f1e3; --sand:#f7efdc; --sky:#e6f0ef; }
+body { background:radial-gradient(1200px 600px at 100% 0%,rgba(226,201,140,.10),transparent 60%),radial-gradient(900px 500px at 0% 30%,rgba(45,111,106,.06),transparent 60%),var(--paper); }
+.brand-mark { width:54px; height:54px; padding:0; border:0; border-radius:50%; background:none; filter:drop-shadow(0 5px 10px rgba(4,31,18,.35)); transition:transform .3s; }
+.brand-lockup:hover .brand-mark { transform:rotate(-6deg) scale(1.04); }
+.brand { font-size:21px; letter-spacing:.14em; }
+.brand-sub { font-family:'Playfair Display',Georgia,serif; font-style:italic; font-size:12px; letter-spacing:.03em; color:#e2cf97; }
+.top-nav { font-family:'Playfair Display',Georgia,serif; font-size:15px; font-weight:500; letter-spacing:.015em; }
+.top-nav .nav-cta { font-weight:600; }
+.footer-mark { border-radius:50%; }
+.footer-brand strong { font-family:'Playfair Display',Georgia,serif; font-size:13px; }
+
+/* fine print: secondary notes sit small, at the bottom */
+.fine-print { color:#7d8b80; font-size:11px; line-height:1.55; margin:16px 0 0; font-style:italic; }
+.fine-print-dark { color:#b9cdbd; margin-top:12px; }
+.mianio-boundary, .service-boundary, .paper-disclaimer, .paper-form-note, .testimonial-feature .testimonial-source { font-style:italic; }
+
+/* home feature cards: color accents and working links */
+.feature-card { border-top:4px solid var(--forest); }
+.feature-card:nth-child(1) { background:linear-gradient(180deg,#f1f8ee,#fff 55%); }
+.feature-card:nth-child(2) { background:linear-gradient(180deg,#eaf3f2,#fff 55%); border-top-color:var(--teal); }
+.feature-card:nth-child(3) { background:linear-gradient(180deg,#faf1de,#fff 55%); border-top-color:var(--gold); }
+a.feature-foot { text-decoration:none; font-size:10px; transition:color .2s, letter-spacing .2s; }
+a.feature-foot:hover { color:var(--forest); letter-spacing:.2em; }
+
+/* Mian.io home block */
+.mianio-pills { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:20px 0 22px; max-width:900px; }
+.mianio-pill { display:grid; gap:3px; padding:13px 15px; border-radius:12px; background:rgba(255,255,255,.72); border:1px solid #c4dcc2; }
+.mianio-pill strong { color:var(--forest); font-size:13px; }
+.mianio-pill span { color:#5a7262; font-size:12px; line-height:1.45; }
+.research-section .mianio-intro { background:linear-gradient(125deg,#e3f0e4 0%,#d6e9e3 55%,#f3ead2 100%); }
+
+/* time section warmth */
+.time-section { background:linear-gradient(120deg,#173e32 0%,#1f5442 60%,#2d6f6a 100%); }
+
+/* learn grid colors */
+.learn-card:nth-child(5),.learn-card:nth-child(6) { background:var(--sand); border-color:#ead9b2; }
+.learn-card:nth-child(5) .learn-kicker,.learn-card:nth-child(6) .learn-kicker { color:#9a7330; }
+
+/* Paper Lab fund average */
+.fund-average { margin:4px 0 8px; padding:11px 13px; border-radius:10px; background:var(--sky); border:1px solid #c8dedb; color:#3f5f5a; font-size:12px; line-height:1.5; }
+.fund-average:empty { display:none; }
+.fund-average strong { color:var(--teal); }
+.fund-average a { color:var(--teal); font-weight:700; }
+.fund-average-missing { color:#8a5a12; }
+
+@media (max-width:700px) { .mianio-pills { grid-template-columns:1fr; } .top-nav { font-size:12px; } }
