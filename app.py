@@ -324,7 +324,8 @@ def _research_steps(events):
         elif name == "web_search":
             queries = tool_input.get("queries") or tool_input.get("search_query") or tool_input.get("query")
             if isinstance(queries, list):
-                query_text = "; ".join(str(item.get("search_term") or item.get("q") or item) for item in queries[:2])
+                # The Responses API may return queries as plain strings or as {"search_term"/"q": ...} dicts.
+                query_text = "; ".join(str(item.get("search_term") or item.get("q") or "") if isinstance(item, dict) else str(item) for item in queries[:2])
             elif isinstance(queries, dict):
                 query_text = str(queries.get("search_term") or queries.get("q") or "")
             else:
