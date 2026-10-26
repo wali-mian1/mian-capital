@@ -17,7 +17,7 @@ from pydantic_ai.models.openai import OpenAIResponsesModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.usage import UsageLimits
 
-from agent import MODEL, _audit, _client
+from agent import MODEL, _audit, run_with_fallback
 from funds import FUNDS
 
 HERE = Path(__file__).resolve().parent
@@ -126,8 +126,8 @@ def company_facts(ticker: str) -> dict:
     return facts
 
 
-def _screen_agent() -> Agent:
-    model = OpenAIResponsesModel(MODEL, provider=OpenAIProvider(openai_client=_client()))
+def _screen_agent(client) -> Agent:
+    model = OpenAIResponsesModel(MODEL, provider=OpenAIProvider(openai_client=client))
     return Agent(model, output_type=ScreenBatch, instructions=SCREEN_INSTRUCTIONS, name="mian_capital_holdings_screen",
                  model_settings={"max_output_tokens": 6000})
 
@@ -144,11 +144,11 @@ def screen_companies(companies: dict[str, dict]) -> tuple[dict[str, dict], dict 
             for t, f in missing.items()
         ]
         _audit({"event": "screen_start", "model": MODEL, "companies": len(missing)})
-        result = _screen_agent().run_sync("Screen these companies:\n" + "\n".join(lines),
-                                          usage_limits=UsageLimits(request_limit=3, output_tokens_limit=8000))
+        result, provider = run_with_fallback(_screen_agent, "Screen these companies:\n" + "\n".join(lines),
+                                             usage_limits=UsageLimits(request_limit=3, output_tokens_limit=8000))
         u = result.usage
         usage = {"input_tokens": u.input_tokens, "cached_input_tokens": u.cache_read_tokens, "output_tokens": u.output_tokens, "requests": u.requests, "companies": len(missing)}
-        _audit({"event": "screen_complete", "model": MODEL, "usage": usage})
+        _audit({"event": "screen_complete", "model": MODEL, "provider": provider, "usage": usage})
         with _CACHE_LOCK:
             cache = _load_cache()
             activity = cache.setdefault("activity", {})

@@ -8,12 +8,13 @@ import re
 import threading
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from typing import Literal
+from typing import Callable, Literal
 from zoneinfo import ZoneInfo
 
 from openai import AsyncOpenAI
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.capabilities import NativeTool
+from pydantic_ai.exceptions import ModelHTTPError
 from pydantic_ai.messages import NativeToolCallPart, NativeToolReturnPart, ToolCallPart, ToolReturnPart
 from pydantic_ai.models.openai import OpenAIResponsesModel
 from pydantic_ai.native_tools import WebSearchTool
@@ -49,11 +50,34 @@ def _load_env() -> None:
                     os.environ[clean_key] = clean_secret
 
 
-def _client() -> AsyncOpenAI:
+def _providers() -> list[tuple[str, AsyncOpenAI]]:
+    """OPENAI_API_KEY first; the course PORTKEY_API_KEY (same gpt-6-luna model) is the backup."""
     _load_env()
-    if not os.environ.get("OPENAI_API_KEY"):
-        raise RuntimeError("OPENAI_API_KEY is missing. Put it in .env here or one folder above this project.")
-    return AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"], timeout=50)
+    providers = []
+    if os.environ.get("OPENAI_API_KEY"):
+        providers.append(("openai", AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"], timeout=50)))
+    if os.environ.get("PORTKEY_API_KEY"):
+        providers.append(("portkey", AsyncOpenAI(api_key=os.environ["PORTKEY_API_KEY"], base_url="https://api.portkey.ai/v1", timeout=50)))
+    if not providers:
+        raise RuntimeError("No API key found. Put OPENAI_API_KEY (or PORTKEY_API_KEY) in .env here or one folder above this project.")
+    return providers
+
+
+# Key, access, model-availability, quota, or usage-limit rejections: try the next key.
+_FALLBACK_STATUS = {400, 401, 402, 403, 404, 412, 429}
+
+
+def run_with_fallback(build: Callable[[AsyncOpenAI], Agent], prompt: str, **kwargs):
+    """Run an agent on the first provider that accepts the key; returns (result, provider name)."""
+    providers = _providers()
+    for index, (provider, client) in enumerate(providers):
+        try:
+            return build(client).run_sync(prompt, **kwargs), provider
+        except ModelHTTPError as exc:
+            if index + 1 < len(providers) and exc.status_code in _FALLBACK_STATUS:
+                _audit({"event": "provider_fallback", "model": MODEL, "from": provider, "status_code": exc.status_code})
+                continue
+            raise
 
 
 def _audit(event: dict) -> None:
@@ -169,7 +193,7 @@ def run_agent(user_text: str, portfolio_path: str | Path, conversation_history: 
     )
     _audit({"event": "agent_start", "model": MODEL, "request_chars": len(question), "ticker_mentions": mentions})
     try:
-        result = _build_agent(_client()).run_sync(prompt, usage_limits=UsageLimits(request_limit=4, tool_calls_limit=4, output_tokens_limit=2000))
+        result, provider = run_with_fallback(_build_agent, prompt, usage_limits=UsageLimits(request_limit=4, tool_calls_limit=4, output_tokens_limit=2000))
         usage = result.usage
         usage_data = {
             "input_tokens": usage.input_tokens,
@@ -184,7 +208,7 @@ def run_agent(user_text: str, portfolio_path: str | Path, conversation_history: 
         missing = [url for url in urls if url not in answer]
         if missing:
             answer += "\n\nPrice source: " + ", ".join(missing)
-        _audit({"event": "agent_complete", "model": MODEL, "tools": [event["name"] for event in events], "usage": usage_data})
+        _audit({"event": "agent_complete", "model": MODEL, "provider": provider, "tools": [event["name"] for event in events], "usage": usage_data})
         return {"text": answer, "tool_events": events, "usage": usage_data}
     except Exception as exc:
         _audit({"event": "agent_error", "model": MODEL, "error_type": type(exc).__name__})
