@@ -11,7 +11,8 @@ import plotly.graph_objects as go
 from agent import run_agent
 from charts import paper_figure, price_figure
 from paper_trader import PaperTradeError, simulate_future, simulate_historical
-from portfolio_alignment import PortfolioInputError, analyze_portfolio, visible_holdings
+from holdings_screen import screen_portfolio
+from portfolio_alignment import PortfolioInputError, analyze_portfolio
 
 HERE = Path(__file__).resolve().parent
 PORTFOLIO_PATH = HERE / "portfolio.json"
@@ -84,7 +85,7 @@ app.layout = html.Div(
                 html.Div([html.Div("WHAT WE CAN HELP WITH", className="eyebrow"), html.H2("Start with the question you actually have."), html.P("Which account should I open? What does this fund own? Does its screening match my faith? Mian Capital gives you a place to work through those questions without pretending every answer is simple.")], className="section-heading reveal"),
                 html.Div([
                     feature_card("01", "icon-values.svg", "Invest without ignoring your faith", "For Muslims who avoid alcohol, gambling, and other restricted activities, a fund label is only a starting point. We show what the issuer says and where a closer look is still needed.", "FAITH AND EVIDENCE", "delay-1"),
-                    feature_card("02", "icon-research.svg", "Get the numbers in context", "Look up a dated price or recent news, then follow the source. Our portfolio view also separates documented fund-level screening from holdings that still need review.", "DATED RESEARCH", "delay-2"),
+                    feature_card("02", "icon-research.svg", "Get the numbers in context", "Look up a dated price or recent news, then follow the source. Our portfolio screen looks inside your funds and checks each company they hold.", "DATED RESEARCH", "delay-2"),
                     feature_card("03", "icon-journey.svg", "Take the first practical step", "Learn what the accounts do, try a paper-money example, and bring better questions to an advisor or scholar before making a real decision.", "START WHERE YOU ARE", "delay-3"),
                 ], className="feature-grid"),
             ], id="approach", className="approach-section"),
@@ -178,24 +179,31 @@ app.layout = html.Div(
         ], id="about-page", className="page-content subpage-content", hidden=True),
         html.Main([
             html.Section([
-                html.Div([html.Div("EARLY USER FEEDBACK", className="eyebrow"), html.H1(["How one person ", html.Em("used Mian Capital.")], className="subpage-title"), html.P("A person Wali knows tried the tools and shared what stood out. Their feedback is paraphrased below with permission; no timing or financial outcome was recorded.", className="subpage-lede")], className="stories-hero-copy reveal"),
-                html.Div([html.Span("01", className="stories-hero-number"), html.Span("early tester", className="stories-hero-line")], className="stories-hero-art reveal delay-1"),
+                html.Div([html.Div("HEAR FROM OUR USERS", className="eyebrow"), html.H1(["Real questions, ", html.Em("answered faster.")], className="subpage-title"), html.P("Here is how people are using Mian Capital to research funds and think through decisions, shared with their permission.", className="subpage-lede")], className="stories-hero-copy reveal"),
+                html.Div([html.Span("“", className="stories-hero-number"), html.Span("in their words", className="stories-hero-line")], className="stories-hero-art reveal delay-1"),
             ], className="stories-hero"),
             html.Section([
-                html.Div("AN ANONYMOUS FIRST IMPRESSION", className="eyebrow"),
-                html.H2("A price comparison led to a bigger conversation."),
-                html.P("The tester told Wali that Mian.io made it quick to compare HLAL and SPUS prices. They also used Paper Lab to explore a trade they had considered about a month earlier but had not placed. Working through the scenario helped them feel more confident about the decision they were weighing. After trying the site, they contacted Wali for help setting up a brokerage account."),
-                html.Div([html.Span("HLAL + SPUS price research"), html.Span("Paper Lab scenario"), html.Span("Account setup question")], className="tester-tags"),
-                html.P("Anonymous paraphrase shared with the tester's permission. This is a subjective account relayed by Wali Mian, not a timed comparison, endorsement of a specific investment, or evidence of a trade outcome.", className="testimonial-source"),
+                html.Div("FUND COMPARISON", className="eyebrow"),
+                html.H2("Two funds, side by side, in about 20 seconds."),
+                html.P("One of our users tapped the SPUS vs SPY question in Mian.io and had both funds' prices and charts side by side in about 20 seconds. They told us the same check on the open web would have taken closer to a minute, with two separate tabs. They then asked Mian.io for insights on the two funds and got an objective comparison of the tickers, which they found very useful."),
+                html.Div([html.Span("SPUS vs SPY"), html.Span("Side-by-side charts"), html.Span("Follow-up insights")], className="tester-tags"),
+                html.P("Shared with permission. Timings are the user's own estimate; this is not a recommendation of either fund.", className="testimonial-source"),
+            ], className="testimonial-feature reveal"),
+            html.Section([
+                html.Div("PAPER LAB", className="eyebrow"),
+                html.H2("Revisiting a trade before making it."),
+                html.P("A user compared HLAL and SPUS prices, then used Paper Lab to replay a trade they had considered about a month earlier but never placed. Seeing the scenario helped them feel more confident about the decision they were weighing, and they reached out to us for help opening a brokerage account."),
+                html.Div([html.Span("HLAL + SPUS research"), html.Span("Paper Lab scenario"), html.Span("Account setup help")], className="tester-tags"),
+                html.P("Shared with permission. No trade or investment result is implied.", className="testimonial-source"),
             ], className="testimonial-feature reveal"),
             html.Section([
                 html.Div([html.Div("TRY THE TOOLS YOURSELF", className="eyebrow"), html.H2("Two ways to give it a try."), html.P("The examples below use sample questions and holdings. They show what the app can do today, including where it needs more evidence.")], className="section-heading reveal"),
                 html.Div([
                     html.Article([
                         html.Div([html.Span("01 / PORTFOLIO SCREENING", className="story-kicker"), html.Img(src=app.get_asset_url("icon-values.svg"), alt="", className="story-icon")], className="story-card-top"),
-                        html.H3("Find the part that still needs checking."),
-                        html.P("Imagine holding $5,000 of HLAL, $3,000 of SPUS, and $2,000 of AMAGX. Enter those values in Portfolio Screening. The sample result places 80% of the value in funds with a checked issuer description of a Shariah-oriented strategy. The other 20% still needs source review."),
-                        html.P("Choose an extra concern, such as gambling or high debt, and the app adds a review flag. It cannot verify each current company holding or debt ratio, so it does not call the portfolio compliant."),
+                        html.H3("See what your funds actually hold."),
+                        html.P("Enter $5,000 of HLAL, $3,000 of SPUS, and $2,000 of AMAGX in Portfolio Screening. We open each fund, list its largest companies, and check each one for alcohol, gambling, tobacco, weapons, fossil fuels, and high debt."),
+                        html.P("In the sample, almost everything is clear. One holding is flagged: ExxonMobil inside SPUS, for fossil fuels. You see exactly which company it is and how many of your dollars it represents."),
                         html.A("Try the sample portfolio ↗", href="/portfolio", className="story-link"),
                     ], className="story-card reveal delay-1"),
                     html.Article([
@@ -207,7 +215,7 @@ app.layout = html.Div(
                     ], className="story-card reveal delay-2"),
                 ], className="stories-grid"),
             ], className="stories-section"),
-            html.Section([html.Div("TELL US WHAT YOU FOUND", className="eyebrow"), html.H2("Tried it yourself? I'd like to hear what worked."), html.P("Use the sample portfolio or bring a fund question. Tell me what you tried, what helped, and what was confusing. If you would like your words quoted publicly, please say so explicitly. Please do not send account numbers, passwords, or private holdings."), html.A("Write to Wali ↗", href="mailto:wali.mian@yale.edu?subject=Mian%20Capital%20feedback", className="primary-cta")], className="stories-feedback reveal"),
+            html.Section([html.Div("TELL US WHAT YOU FOUND", className="eyebrow"), html.H2("Tried it yourself? We'd love to hear how it worked."), html.P("Use the sample portfolio or bring a fund question. Tell us what you tried, what helped, and what was confusing. If you would like your words shared here, just let us know. Please do not send account numbers, passwords, or private holdings."), html.A("Write to us ↗", href="mailto:wali.mian@yale.edu?subject=Mian%20Capital%20feedback", className="primary-cta")], className="stories-feedback reveal"),
         ], id="stories-page", className="page-content subpage-content", hidden=True),
         html.Main([
             html.Section([
@@ -236,25 +244,31 @@ app.layout = html.Div(
         ], id="paper-page", className="page-content subpage-content", hidden=True),
         html.Main([
             html.Section([
-                html.Div([html.Div([html.Span(className="eyebrow-line"), "YOUR HOLDINGS"], className="eyebrow"), html.H1(["Know what you've checked—", html.Em("and what you haven't.")], className="subpage-title"), html.P("Enter your holdings to see which fund strategies have a checked issuer description and which positions still need a closer look. This is evidence coverage, not a religious certification.", className="subpage-lede")], className="reveal"),
+                html.Div([html.Div([html.Span(className="eyebrow-line"), "PORTFOLIO SCREENING"], className="eyebrow"), html.H1(["See what your funds ", html.Em("actually own.")], className="subpage-title"), html.P("Enter your funds or stocks. We open each fund, list the companies it holds, and check every company against six common Shariah screens: alcohol, gambling, tobacco, weapons, fossil fuels, and high debt.", className="subpage-lede")], className="reveal"),
             ], className="portfolio-hero"),
             html.Section([
-                html.Div([html.Div("START WITH WHAT YOU OWN", className="eyebrow"), html.H2("Put your holdings on the table."), html.P("Enter each ticker and its current market value in dollars. The sample is illustrative. You can add up to 20 holdings; no account connection or personal identity is needed.")], className="section-heading reveal"),
                 html.Div([
                     html.Div([
+                        html.Div("1. What do you own?", className="form-kicker"),
                         html.Div([holding_row(0, "HLAL", "5000"), holding_row(1, "SPUS", "3000"), holding_row(2, "AMAGX", "2000"), holding_row(3)], id="holding-rows", className="holding-rows"),
                         html.Button("+ Add another holding", id="add-holding", n_clicks=0, className="add-holding"),
-                        html.Small("Use today's position values, not share counts. Leave an unused row blank."),
-                        html.Div("Extra personal exclusions to flag for review", className="portfolio-exclusion-label"),
-                        dcc.Checklist(id="portfolio-exclusions", options=[{"label": "Alcohol", "value": "alcohol"}, {"label": "Gambling", "value": "gambling"}, {"label": "High debt / leverage", "value": "high_debt"}, {"label": "Tobacco", "value": "tobacco"}, {"label": "Ordnance", "value": "ordnance"}, {"label": "Fossil fuels", "value": "fossil_fuels"}], value=[], className="portfolio-checklist"),
-                        html.Div([html.Div([html.Label("Show fund focus"), dcc.Dropdown(id="portfolio-region", options=[{"label": "All holdings", "value": "all"}, {"label": "US-focused", "value": "us"}, {"label": "International-focused", "value": "international"}, {"label": "Global mandate", "value": "global"}, {"label": "Region not verified", "value": "unknown"}], value="all", clearable=False, className="portfolio-select")], className="field"), html.Div([html.Label("Sort holdings"), dcc.Dropdown(id="portfolio-sort", options=[{"label": "Largest position first", "value": "weight"}, {"label": "Ticker A–Z", "value": "ticker"}, {"label": "Needs review first", "value": "review"}], value="weight", clearable=False, className="portfolio-select")], className="field")], className="portfolio-filter-fields"),
-                        html.Button("Review my portfolio", id="portfolio-run", n_clicks=0, className="paper-run"),
-                        html.P("Filters use a fund's stated focus, not a verified breakdown of its holdings. Personal exclusion flags need current constituent or financial data. The form resets on reload.", className="paper-form-note"),
+                        html.Small("Funds or individual stocks, with today's dollar value. Leave unused rows blank."),
+                        html.Button("Screen my portfolio", id="portfolio-run", n_clicks=0, className="paper-run"),
+                        html.P("The first screen takes about 20 seconds while we look up each company. Nothing is sent to a brokerage.", className="paper-form-note"),
                     ], className="paper-form reveal delay-1"),
-                    html.Div([html.Div("YOUR EVIDENCE VIEW", className="form-kicker"), html.Div("Run a review to see coverage and holding-level sources.", id="portfolio-result", className="paper-result-empty")], className="paper-output reveal delay-2"),
+                    html.Div([
+                        html.Div("2. What we check", className="form-kicker"),
+                        html.Div([
+                            html.Div([html.Strong("Look inside each fund"), html.Span("We pull the fund's ten largest holdings from Yahoo Finance and show how much of your money sits in each company.")], className="screen-step"),
+                            html.Div([html.Strong("Screen each company's business"), html.Span("A Mian Capital AI agent reads each company's industry and business description and marks alcohol, gambling, tobacco, weapons, and fossil fuels as clear, flagged, or unclear.")], className="screen-step"),
+                            html.Div([html.Strong("Measure debt"), html.Span("Total debt divided by market value. Above 30% is flagged, a common Shariah-screen limit (AAOIFI style).")], className="screen-step"),
+                            html.Div([html.Strong("Add it up"), html.Span("Flagged companies are converted to dollars of your portfolio, so you see how much is actually exposed.")], className="screen-step"),
+                        ], className="screen-steps"),
+                    ], className="paper-output reveal delay-2"),
                 ], className="paper-workspace"),
+                dcc.Loading(html.Div(id="portfolio-result"), type="dot", color="#173e32"),
             ], className="paper-work-section"),
-            html.P("Issuer descriptions are claims about fund strategy, not independent checks of every current holding or a fatwa. Missing evidence is shown as unknown. Consult a qualified scholar and financial professional for decisions.", className="paper-disclaimer"),
+            html.P("This screen covers each fund's ten largest holdings, not every company it owns, and uses one common debt limit. It is research, not a religious ruling. Consult a qualified scholar and financial professional for decisions.", className="paper-disclaimer"),
         ], id="portfolio-page", className="page-content subpage-content", hidden=True),
         html.Footer(html.Div([html.Div([html.Img(src=app.get_asset_url("mian-mark.svg"), alt="", className="footer-mark"), html.Div([html.Strong("MIAN CAPITAL"), html.Span("Faith, money, and a plan.")], className="footer-brand")]), html.Div("Research to support a thoughtful conversation. Fund information is not a religious ruling or personal investment advice.", className="footer-note")], className="footer-inner"), className="footer"),
     ], className="app-shell",
@@ -526,8 +540,48 @@ def add_holding_row(n_clicks, rows):
     return [*(rows or []), holding_row(len(rows or []))]
 
 
-@app.callback(Output("portfolio-result", "children"), Input("portfolio-run", "n_clicks"), Input("portfolio-region", "value"), Input("portfolio-sort", "value"), State({"type": "holding-ticker", "index": ALL}, "value"), State({"type": "holding-value", "index": ALL}, "value"), State("portfolio-exclusions", "value"), prevent_initial_call=True)
-def run_portfolio_review(n_clicks, region, sort_by, tickers, values, exclusions):
+VERDICT_MARK = {"clear": ("✓", "verdict-clear", "Clear"), "flag": ("⚠", "verdict-flag", "Flagged"), "unclear": ("?", "verdict-unclear", "Not enough data")}
+SCREEN_COLUMNS = [("alcohol", "Alcohol"), ("gambling", "Gambling"), ("tobacco", "Tobacco"), ("ordnance", "Weapons"), ("fossil_fuels", "Fossil fuels"), ("high_debt", "Debt")]
+
+
+def _verdict_cell(verdict: str, title: str = "") -> html.Td:
+    mark, css, label = VERDICT_MARK.get(verdict, VERDICT_MARK["unclear"])
+    return html.Td(html.Span(mark, className=f"verdict {css}", title=title or label), className="verdict-cell")
+
+
+def _position_block(position: dict) -> html.Details:
+    head = html.Summary([
+        html.Strong(position["symbol"]), html.Span(position["name"], className="position-name"),
+        html.Span(_money(position["value"]), className="position-value"),
+    ])
+    if position["kind"] == "sukuk":
+        body = html.P("This fund holds sukuk (Islamic bonds), not company stock, so there are no companies to screen.", className="position-note")
+    elif not position["holdings"]:
+        body = html.P("Yahoo Finance did not report holdings for this fund, so it could not be screened.", className="position-note")
+    else:
+        flags = sum(1 for row in position["holdings"] for verdict in row["checks"].values() if verdict == "flag")
+        note = f"Top {len(position['holdings'])} holdings = {position['top_weight_pct']:.0f}% of the fund." if position["kind"] == "fund" else "Individual stock."
+        if position["is_benchmark"]:
+            note += " Comparison ETF, not a Shariah fund."
+        rows = [html.Tr([
+            html.Td([html.Strong(row["ticker"]), html.Div(row["name"], className="company-name")]),
+            html.Td(row["industry"], className="company-industry"),
+            html.Td(f"{row['fund_weight_pct']:.1f}%" if position["kind"] == "fund" else "—"),
+            html.Td(_money(row["dollars"])),
+            *[_verdict_cell(row["checks"][key], row["reason"] if key != "high_debt" else (f"Debt is {row['debt_ratio_pct']}% of market value" if row["debt_ratio_pct"] is not None else "Debt data not available in a single currency")) for key, _ in SCREEN_COLUMNS],
+        ], className="flag-row" if "flag" in row["checks"].values() else None) for row in position["holdings"]]
+        body = html.Div([
+            html.P([note, " ", html.Span(f"{flags} flag{'s' if flags != 1 else ''} found." if flags else "No flags found.", className="position-flags" if flags else "position-clean")], className="position-note"),
+            html.Div(html.Table([
+                html.Thead(html.Tr([html.Th("Company"), html.Th("Industry"), html.Th("% of fund"), html.Th("Your $"), *[html.Th(label) for _, label in SCREEN_COLUMNS]])),
+                html.Tbody(rows),
+            ], className="screen-table"), className="screen-table-wrap"),
+        ])
+    return html.Details([head, body], open=True, className="position-block")
+
+
+@app.callback(Output("portfolio-result", "children"), Input("portfolio-run", "n_clicks"), State({"type": "holding-ticker", "index": ALL}, "value"), State({"type": "holding-value", "index": ALL}, "value"), prevent_initial_call=True)
+def run_portfolio_review(n_clicks, tickers, values):
     if not n_clicks:
         return no_update
     try:
@@ -538,35 +592,28 @@ def run_portfolio_review(n_clicks, region, sort_by, tickers, values, exclusions)
             if not str(ticker or "").strip() or value is None or str(value).strip() == "":
                 raise PortfolioInputError("Complete both fields for each holding, or leave the row blank.")
             holdings.append(f"{str(ticker).strip()},{value}")
-        holdings_text = "\n".join(holdings)
-        result = analyze_portfolio(holdings_text, exclusions)
-        displayed = visible_holdings(result, region, sort_by)
+        parsed = analyze_portfolio("\n".join(holdings))
+        result = screen_portfolio({item["ticker"]: item["market_value"] for item in parsed["holdings"]})
     except PortfolioInputError as exc:
         return html.Div(str(exc), className="paper-error")
-    rows = []
-    for item in displayed:
-        rows.append(html.Div([
-            html.Div([html.Strong(item["ticker"]), html.Span(f"{item['weight_pct']:.2f}% of portfolio", className="portfolio-weight")], className="portfolio-row-head"),
-            html.Div(f"{item['name']} · {item['region_label']}", className="portfolio-name"),
-            html.Div(item["status"], className="portfolio-status"),
-            html.P(item["explanation"]),
-            html.A("Issuer source ↗", href=item["source_url"], target="_blank", rel="noopener noreferrer") if item["source_url"] else html.Span("No reviewed source", className="portfolio-no-source"),
-            html.Div(f"Source checked: {item['source_checked_on']}" if item["source_checked_on"] else "Source check pending", className="portfolio-source-date"),
-        ], className="portfolio-row"))
+    except Exception:
+        return html.Div("Screening is temporarily unavailable. Check the internet connection and OPENAI_API_KEY, then try again.", className="paper-error")
+    tiles = []
+    for category in result["categories"]:
+        if category["dollars"] > 0:
+            tiles.append(html.Div([html.Span("⚠", className="verdict verdict-flag"), html.Strong(category["label"]), html.Div(f"{_money(category['dollars'])} · {category['pct']:.1f}% of your portfolio", className="tile-amount"), html.Div(", ".join(category["companies"]), className="tile-companies")], className="screen-tile tile-flag"))
+        else:
+            tiles.append(html.Div([html.Span("✓", className="verdict verdict-clear"), html.Strong(category["label"]), html.Div("None found in screened holdings", className="tile-amount")], className="screen-tile tile-clear"))
     return html.Div([
-        html.H3("Portfolio evidence coverage"),
-        html.Div([html.Div([html.Strong(f"{result['issuer_screened_share_pct']:.2f}%"), html.Span("Issuer-described screened strategies")]), html.Div([html.Strong(f"{result['needs_review_share_pct']:.2f}%"), html.Span("Needs source review")])], className="portfolio-score-grid"),
-        html.P(f"Entered portfolio value: {_money(result['total_value'])}", className="portfolio-total"),
-        html.H4("Fund focus by entered value"),
-        html.Div([html.Div([html.Strong(f"{item['weight_pct']:.1f}%"), html.Span(item["label"])], className="geography-item") for item in result["region_breakdown"]], className="geography-grid"),
-        html.P("These categories describe a fund's stated geographic mandate, not a verified look-through to every company it owns.", className="geography-note"),
-        html.H4("Holding-level evidence"),
-        html.P(f"Showing {len(displayed)} of {len(result['holdings'])} holdings. Weights above use the whole portfolio.", className="portfolio-filter-note"),
-        html.Div(rows if rows else [html.P("No holdings match this fund-focus filter.", className="history-empty")], className="portfolio-rows"),
-        html.H4("Your extra exclusions"),
-        html.Div([html.Div([html.Strong(f"{check['label']} · {check['status']}"), html.P(check["detail"])], className="exclusion-review") for check in result["exclusion_checks"]], className="exclusion-reviews") if result["exclusion_checks"] else html.P("None selected. Choose exclusions above and run the review again."),
-        html.Details([html.Summary("How this percentage is calculated"), html.P(result["method"])], className="portfolio-method"),
-    ], className="portfolio-results")
+        html.Div("YOUR RESULTS", className="eyebrow"),
+        html.H2(f"We screened {result['companies_screened']} companies inside your portfolio."),
+        html.P(f"Those holdings account for {result['covered_pct']:.0f}% of your {_money(result['total_value'])}. The rest sits in smaller holdings beyond each fund's top ten, or in sukuk funds that hold no company stock.", className="results-lede"),
+        html.Div(tiles, className="screen-tiles"),
+        html.H3("Fund by fund"),
+        html.P(["✓ clear · ⚠ flagged · ? not enough data. Hover over a mark to see why."], className="screen-legend"),
+        *[_position_block(position) for position in result["positions"]],
+        html.Details([html.Summary("How this screen works"), html.P(f"Holdings and company data come from Yahoo Finance, checked {result['as_of']}. Business activities are classified by a gpt-6-luna screening agent from each company's industry and description; results are cached so repeat screens are instant. Debt is total debt divided by current market value, flagged above 30%; it shows ? when Yahoo reports debt and market value in different currencies. Screening standards differ (for example, AAOIFI and S&P use different debt bases), and this view does not compute purification amounts or check interest income.")], className="portfolio-method"),
+    ], className="screen-results")
 
 
 if __name__ == "__main__":

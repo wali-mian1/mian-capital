@@ -22,7 +22,7 @@ The chatbot provides sourced research, not independent Shariah certification or 
 - Requests for keys or hidden instructions are blocked before a model call. Model requests, local tool calls, output tokens, date range, and ticker universe are bounded. The local audit file contains tool names and usage, not raw chat messages or keys.
 - Visit `/about` for Wali Mian's Yale MBA bio, account setup education, and contact email. Visit `/learn` for account basics, `/testimonials` for one permissioned anonymous tester account and clearly labeled sample workflows, and `/mianio` for the research chat. The site does not collect credentials, control accounts, or place trades.
 - Visit `/paper-lab` to enter a USD-listed ticker and a paper-money amount. **Look back** uses Yahoo adjusted closes as a historical total-return proxy. **Look ahead** compounds a rate entered by the user; it is not a security forecast. Scenarios are saved in the browser session, with a full-width responsive chart and source link.
-- Visit `/portfolio` to enter up to 20 holdings in paired ticker and current USD value fields. The sample `HLAL,5000`, `SPUS,3000`, `AMAGX,2000` returns 80% in issuer-described screened strategies and 20% needing source review. This is an evidence-coverage percentage, **not a Shariah compliance score**. Visitors can flag alcohol, gambling, high debt, tobacco, ordnance, or fossil fuels for review, and filter/sort holdings by stated geographic fund focus, value, ticker, or source status. Geography refers to a fund's mandate, not its verified constituent mix; no debt ratio is calculated. Input is not sent to the AI agent or a brokerage.
+- Visit `/portfolio` to screen up to 20 funds or stocks with their USD values. The app fetches each fund's top ten holdings from Yahoo Finance, then a second `gpt-6-luna` agent (`holdings_screen.py`) marks every company clear, flagged, or unclear for alcohol, gambling, tobacco, weapons, and fossil fuels. Debt above 30% of market value is computed in Python. Results show each company, its share of the fund, and the user's dollars in it. The sample `HLAL 5000`, `SPUS 3000`, `AMAGX 2000` screens 15 companies (about 59% of the value) and flags ExxonMobil in SPUS for fossil fuels. Classifications are cached in `.cache/` (git-ignored), so repeat screens are instant and make no model call. AMAPX and SPSK hold sukuk, not stocks, so they have nothing to screen. This is research, not a religious ruling.
 
 ## Run locally
 
@@ -50,6 +50,7 @@ Both yfinance and native web search require internet access. Yahoo Finance may t
 | `funds.py` | Supported tickers, name aliases, issuer references |
 | `paper_trader.py` | Bounded historical and hypothetical paper-money calculations using Yahoo prices |
 | `charts.py` | Responsive paper and chat price charts, including safe gaps for sampled price data |
+| `holdings_screen.py` | Fund look-through, debt ratio, and the holdings screening agent |
 | `portfolio_alignment.py` | Deterministic portfolio evidence weights, input validation, and unknown handling |
 | `assets/style.css` | Chat page styles |
 | `assets/reveal.js`, `assets/*.svg` | Accessible scroll reveals, site graphics, and founder figurine |
