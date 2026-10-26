@@ -15,13 +15,13 @@ from portfolio_alignment import PortfolioInputError, analyze_portfolio, visible_
 
 HERE = Path(__file__).resolve().parent
 PORTFOLIO_PATH = HERE / "portfolio.json"
-app = Dash(__name__, title="Mian Capital | Research chat")
+app = Dash(__name__, title="Mian Capital | Mian.io")
 server = app.server
 
 WELCOME = (
-    "Assalamu alaikum. Tell me which fund you're curious about, or ask for a dated price, recent news, or a public screening source. "
+    "Welcome to Mian.io. Tell me which fund you're curious about, or ask for a dated price, recent news, or a public screening source. "
     "I can also compare SPY and QQQ as broad-market examples; they are **not** Shariah-screened recommendations. "
-    "Open ‘How this answer was checked’ to see the dates and sources behind a reply."
+    "I use earlier questions from this browser session to understand follow-ups. Open ‘How this answer was checked’ for dates and sources."
 )
 
 QUICK_QUESTIONS = (
@@ -54,15 +54,15 @@ app.layout = html.Div(
         html.Div(id="scroll-signal", style={"display": "none"}),
         html.Header(html.Div([
             html.A([html.Img(src=app.get_asset_url("mian-mark.svg"), alt="", className="brand-mark"), html.Div([html.Div("MIAN CAPITAL", className="brand"), html.Div("Faith, money, and a plan", className="brand-sub")])], href="/", className="brand-lockup", **{"aria-label": "Mian Capital, home"}),
-            html.Nav([html.A("Home", href="/"), html.A("About", href="/about"), html.A("Learn", href="/#learn"), html.A("Paper Lab", href="/paper-lab"), html.A("Portfolio", href="/portfolio"), html.A("Talk to us", href="/#research", className="nav-cta")], className="top-nav", **{"aria-label": "Main navigation"}),
+            html.Nav([html.A("Home", href="/"), html.A("Learn", href="/#learn"), html.A("Paper Lab", href="/paper-lab"), html.A("Portfolio", href="/portfolio"), html.A("About", href="/about"), html.A("Mian.io", href="/#research", className="nav-cta")], className="top-nav", **{"aria-label": "Main navigation"}),
         ], className="topbar-inner"), className="topbar"),
         html.Main([
             html.Section([
                 html.Div([
                     html.Div([html.Span(className="eyebrow-line"), "FOR PEOPLE READY TO BEGIN"], className="eyebrow"),
-                    html.H1(["Your money can do more than ", html.Em("wait in a checking account.")], className="hero-title"),
-                    html.P("Maybe you're ready to invest but don't know which account to open—or whether a fund fits Islamic principles. We'll help you learn the basics, look at real funds, and see what still needs checking.", className="hero-copy"),
-                    html.Div([html.A(["Start with the basics", html.Span("↗", **{"aria-hidden": "true"})], href="#learn", className="primary-cta"), html.A("Explore fund research", href="#research", className="text-cta")], className="hero-actions"),
+                    html.H1(["Cash sitting in checking can lose ground to ", html.Em("inflation.")], className="hero-title"),
+                    html.P("When prices rise faster than your account's interest, each dollar buys less. If investing feels unfamiliar, we'll help you learn the accounts and look at funds through an Islamic lens before you take the next step.", className="hero-copy"),
+                    html.Div([html.A(["Start with the basics", html.Span("↗", **{"aria-hidden": "true"})], href="#learn", className="primary-cta"), html.A("Try Mian.io", href="#research", className="text-cta")], className="hero-actions"),
                     html.Div([html.Span("LEARN THE ACCOUNTS"), html.Span(className="hero-dot"), html.Span("CHECK THE SOURCES"), html.Span(className="hero-dot"), html.Span("MOVE AT YOUR PACE")], className="hero-signals"),
                 ], className="hero-content reveal"),
                 html.Div([
@@ -93,14 +93,24 @@ app.layout = html.Div(
                 html.Div([html.Strong("What goes inside?"), html.Span("A stock is a share of one company. An ETF or mutual fund holds a basket of investments; ETFs trade during the day, while mutual funds usually price once daily. The account type does not make its holdings Shariah-compliant—check the investments themselves."), html.A("See investment product basics ↗", href="https://www.investor.gov/introduction-investing/investing-basics/investment-products", target="_blank", rel="noopener noreferrer")], className="learn-footnote reveal"),
             ], id="learn", className="learn-section"),
             html.Section([
-                html.Div([html.Div("FUND RESEARCH", className="eyebrow"), html.H2("Curious about a fund? Let's look it up."), html.P("Ask in your own words. You'll get dated price information, recent public sources, and a clear note when a screening claim still needs checking."),], className="section-heading reveal"),
+                html.Div([
+                    html.Div("MIAN.IO · FREE TO USE", className="eyebrow"),
+                    html.H2("Fund research that feels like a conversation."),
+                    html.P("Mian.io is our own free research tool, built for Mian Capital. Ask in your own words, then ask a follow-up: it uses the earlier questions in this browser session to keep the conversation moving. You can try it without an account or a fee."),
+                    html.Div([
+                        html.Div([html.Strong("Say the fund name"), html.Span("Ask about Amana Growth Fund and Mian.io looks up AMAGX, the ticker the price source needs.")], className="mianio-benefit"),
+                        html.Div([html.Strong("See a dated chart"), html.Span("Get the latest available close, a price history chart, and the source behind the numbers.")], className="mianio-benefit"),
+                        html.Div([html.Strong("Know what needs checking"), html.Span("Read public screening sources and see when a fund's current holdings still need review.")], className="mianio-benefit"),
+                    ], className="mianio-benefits"),
+                    html.P("We built it to make the first research step quicker and easier to verify. It does not certify Shariah compliance or make trades for you.", className="mianio-boundary"),
+                ], className="mianio-intro reveal"),
                 html.Div([
                 html.Section([
-                    html.Div([html.Div("MIAN CAPITAL RESEARCH CHAT", className="card-kicker"), html.Div("Let's talk funds", className="card-title")], className="chat-head"),
+                    html.Div([html.Div("MIAN.IO · RESEARCH CHAT", className="card-kicker"), html.Div("What would you like to know?", className="card-title")], className="chat-head"),
                     html.Div(id="chat-window", className="chat-window", role="log", **{"aria-live": "polite"}),
                     html.Div([html.Span("QUICK QUESTIONS", className="quick-label"), html.Div([html.Button(label, id={"type": "quick-question", "index": index}, n_clicks=0, className="quick-chip") for index, (label, _) in enumerate(QUICK_QUESTIONS)], className="quick-chips")], className="quick-row"),
                     html.Div([
-                        dcc.Input(id="composer", type="text", debounce=False, placeholder="Ask for Amana Growth Fund's price or news about HLAL...", className="composer", autoComplete="off"),
+                        dcc.Input(id="composer", type="text", debounce=False, placeholder="Ask Mian.io about a fund, a price, or recent news...", className="composer", autoComplete="off"),
                         html.Button("Send", id="send-button", n_clicks=0, className="send-button"),
                     ], className="composer-row"),
                     html.Div("Press Enter to send · Research only; an advisor can help with personal decisions.", className="composer-note"),
@@ -127,9 +137,10 @@ app.layout = html.Div(
             html.Section([
                 html.Div([
                     html.Div([html.Span(className="eyebrow-line"), "MEET WALI MIAN"], className="eyebrow"),
-                    html.H1(["I know the numbers. ", html.Em("I also know the first step can be hard.")], className="subpage-title"),
-                    html.P("I've worked with retirement plans and invested my own money for years. Mian Capital is where I bring that experience to people who want to start investing without setting their beliefs aside.", className="subpage-lede"),
-                    html.A("Explore fund research ↗", href="/#research", className="primary-cta"),
+                    html.H1(["The first step ", html.Em("can be the hardest.")], className="subpage-title"),
+                    html.Div("ABOUT YOUR ADVISOR", className="eyebrow about-bio-label"),
+                    html.P("I’m Wali Mian, a Yale School of Management student. I studied mathematics and actuarial science at UT Austin, then spent four years as an actuary working with 401(k)s, defined benefit and defined contribution plans, and pensions. I built Mian Capital to help people in my community get started while keeping their faith in view.", className="subpage-lede about-bio-copy"),
+                    html.A("Explore Mian.io ↗", href="/#research", className="primary-cta"),
                 ], className="about-hero-copy reveal"),
                 html.Div([
                     html.Img(src=app.get_asset_url("advisor-figurine.svg"), alt="Playful illustrated advisor figurine with glasses, a calculator, and a coin", className="advisor-figurine"),
@@ -137,12 +148,6 @@ app.layout = html.Div(
                     html.Div("Let's make the first money conversation easier.", className="advisor-card-quote"),
                 ], className="advisor-card reveal delay-1"),
             ], className="about-hero"),
-            html.Section([
-                html.Div("ABOUT YOUR ADVISOR", className="eyebrow"),
-                html.H2("I came to this from both sides of the table."),
-                html.P("I’m Wali Mian, a Yale School of Management student with eight years of personal investing experience. I studied mathematics and actuarial science at UT Austin, then spent four years as an actuary focused on retirement and benefits, including 401(k), defined benefit, defined contribution, and pension plans. I started Mian Capital to make investing conversations clearer for people in my community who want their financial choices to reflect their faith.", className="bio-copy"),
-                html.Div([html.Span("Yale SOM student"), html.Span("UT Austin math + actuarial science"), html.Span("4 years in retirement benefits"), html.Span("8 years investing")], className="bio-tags"),
-            ], className="bio-section reveal"),
             html.Section([
                 html.Div([
                     html.Div("STARTING IS OFTEN THE HARDEST PART", className="eyebrow"),
@@ -287,8 +292,11 @@ def _research_steps(events):
 
 def render_messages(history, pending):
     blocks = []
-    for message in history or []:
+    for index, message in enumerate(history or []):
         assistant = message.get("role") == "assistant"
+        content = message.get("content", "")
+        if index == 0 and isinstance(content, str) and content.startswith("Assalamu alaikum."):
+            content = WELCOME
         charts = []
         if assistant:
             chart_outputs = {}
@@ -312,13 +320,13 @@ def render_messages(history, pending):
                     html.P("Sampled dates only; open the source for the full daily history." if output.get("prices_sampled") else "Daily closes from Yahoo Finance. The latest available close may be delayed.", className="chat-chart-note"),
                 ], className="chat-chart-card"))
         blocks.append(html.Div([
-            html.Div("Mian Capital" if assistant else "You", className="message-label"),
-            dcc.Markdown(str(message.get("content", "")), className="message-body", link_target="_blank"),
+            html.Div("Mian.io" if assistant else "You", className="message-label"),
+            dcc.Markdown(str(content), className="message-body", link_target="_blank"),
             html.Div(charts, className="chat-charts") if charts else None,
             _research_steps(message.get("tool_events") or []) if assistant else None,
         ], className="message assistant chart-message" if charts else ("message assistant" if assistant else "message user")))
     if pending:
-        blocks.append(html.Div([html.Div("Mian Capital", className="message-label"), html.Span("Thinking", className="thinking")], className="message assistant", role="status"))
+        blocks.append(html.Div([html.Div("Mian.io", className="message-label"), html.Span("Thinking", className="thinking")], className="message assistant", role="status"))
     return blocks
 
 
